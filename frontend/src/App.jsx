@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { LiveProvider, LivePreview, LiveError } from 'react-live';
 import Cookies from 'js-cookie';
 import AdvancedReactPreview from './components/advanced-react-preview';
+import PrototypeLabFlow from './components/PrototypeLabFlow';
 
 // --- Reusable UI Components ---
 
@@ -1033,7 +1034,7 @@ function App() {
             case 'landing':
                 return <LandingView onNavigate={handleNavigate} />;
             case 'prototype':
-                return <PrototypeView onNavigate={handleNavigate} isJsZipLoaded={isJsZipLoaded} />;
+                return <PrototypeLabFlow onNavigate={handleNavigate} />;
             case 'app-lab-landing':
                 return <AppLabLandingView onNavigate={handleNavigate} />;
             case 'app-lab-generate':
