@@ -588,31 +588,6 @@ export default App;`);
 
     return (
         <div className="relative">
-            {/* Back Button */}
-            <button
-                onClick={() => onNavigate('landing')}
-                className="absolute top-4 left-4 bg-gray-600 hover:bg-gray-700 text-gray-300 font-bold py-2 px-4 rounded-lg transition-colors z-10"
-            >
-                ← Back
-            </button>
-
-            {/* Screen Navigation */}
-            <div className="absolute top-4 right-4 flex space-x-2 z-10">
-                {[1, 2, 3].map((screen) => (
-                    <button
-                        key={screen}
-                        onClick={() => setCurrentScreen(screen)}
-                        className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm transition-colors ${
-                            currentScreen === screen
-                                ? 'border-gray-400 text-gray-400'
-                                : 'border-gray-600 text-gray-600 hover:border-gray-500'
-                        }`}
-                    >
-                        {screen}
-                    </button>
-                ))}
-            </div>
-
             {/* Render Current Screen */}
             {currentScreen === 1 && renderScreen1()}
             {currentScreen === 2 && renderScreen2()}

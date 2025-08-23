@@ -516,8 +516,8 @@ const AppLabLandingView = ({ onNavigate }) => (
                         </h1>
                         <section>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <ServiceCard title="Android" svgPath="M4.33 2.86a2 2 0 012.02 0l8.29 4.28a2 2 0 011.36 1.86v7.14a2 2 0 01-1.36 1.86l-8.29 4.28a2 2 0 01-2.02 0l-8.29-4.28a2 2 0 01-1.36-1.86V8.86a2 2 0 011.36-1.86l8.29-4.28zM9 12a3 3 0 100-6 3 3 0 000 6z" onClick={() => onNavigate('app-lab-generate', 'android')} />
-                                <ServiceCard title="iOS" svgPath="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" onClick={() => onNavigate('app-lab-generate', 'ios')} />
+                                <ServiceCard title="Android" svgPath="M4.33 2.86a2 2 0 012.02 0l8.29 4.28a2 2 0 011.36 1.86v7.14a2 2 0 01-1.36 1.86l-8.29 4.28a2 2 0 01-2.02 0l-8.29-4.28a2 2 0 01-1.36-1.86V8.86a2 2 0 011.36-1.86l8.29-4.28zM9 12a3 3 0 100-6 3 3 0 000 6z" onClick={() => onNavigate('android')} />
+                                <ServiceCard title="iOS" svgPath="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" onClick={() => onNavigate('ios')} />
                                 <ServiceCard title="Progressive Web App" svgPath="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9m-9 9a9 9 0 00-9-9" onClick={() => onNavigate('app-lab-generate', 'pwa')} />
                             </div>
                         </section>
