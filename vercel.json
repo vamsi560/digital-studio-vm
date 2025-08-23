@@ -2,33 +2,29 @@
   "version": 2,
   "builds": [
     {
-      "src": "backend/api/**/*.js",
-      "use": "@vercel/node"
-    },
-    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
+    },
+    {
+      "src": "backend/api/**/*.js",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/health",
-      "dest": "backend/api/health.js"
+      "dest": "/backend/api/health.js"
     },
     {
       "src": "/api/generate-code",
-      "dest": "backend/api/generate-code.js"
+      "dest": "/backend/api/generate-code.js"
     },
     {
       "src": "/api/projects",
-      "dest": "backend/api/projects.js"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/api/$1.js"
+      "dest": "/backend/api/projects.js"
     },
     {
       "src": "/(.*)",
@@ -45,8 +41,5 @@
     "backend/api/health.js": {
       "maxDuration": 10
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   }
 }
