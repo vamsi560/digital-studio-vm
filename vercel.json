@@ -1,36 +1,8 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    },
-    {
-      "src": "backend/api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/health",
-      "dest": "/backend/api/health.js"
-    },
-    {
-      "src": "/api/generate-code",
-      "dest": "/backend/api/generate-code.js"
-    },
-    {
-      "src": "/api/projects",
-      "dest": "/backend/api/projects.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
-    }
-  ],
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install",
+  "framework": "vite",
   "functions": {
     "backend/api/generate-code.js": {
       "maxDuration": 60
@@ -41,5 +13,23 @@
     "backend/api/health.js": {
       "maxDuration": 10
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/api/health",
+      "destination": "/backend/api/health.js"
+    },
+    {
+      "source": "/api/generate-code",
+      "destination": "/backend/api/generate-code.js"
+    },
+    {
+      "source": "/api/projects",
+      "destination": "/backend/api/projects.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
