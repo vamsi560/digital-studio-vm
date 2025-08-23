@@ -58,126 +58,133 @@ export default App;`);
     };
 
     const renderScreen1 = () => (
-        <div className="min-h-screen bg-black text-white p-8">
+        <div className="min-h-screen bg-white text-black p-8">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-300">Screen 1</h1>
-                    <h2 className="text-4xl font-bold text-white">Digital Studio</h2>
+                    <h1 className="text-2xl font-bold text-black">Screen 1</h1>
+                    <h2 className="text-4xl font-bold text-black text-center">Digital Studio</h2>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* Left Column - Configuration Options */}
-                    <div className="space-y-6">
-                        {/* Framework Selection */}
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">Framework</h3>
-                            <div className="space-y-3">
-                                {['React', 'Vue.js', 'Angular', 'Svelte'].map((option) => (
-                                    <label key={option} className="flex items-center space-x-3 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="framework"
-                                            value={option}
-                                            checked={framework === option}
-                                            onChange={(e) => setFramework(e.target.value)}
-                                            className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 focus:ring-green-500"
-                                        />
-                                        <span className="text-gray-300">{option}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Styling Selection */}
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">Styling</h3>
-                            <div className="space-y-3">
-                                {['Tailwind CSS', 'SCSS', 'Styled Components', 'PureCSS'].map((option) => (
-                                    <label key={option} className="flex items-center space-x-3 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="styling"
-                                            value={option}
-                                            checked={styling === option}
-                                            onChange={(e) => setStyling(e.target.value)}
-                                            className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 focus:ring-green-500"
-                                        />
-                                        <span className="text-gray-300">{option}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Architecture Selection */}
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">Architecture</h3>
-                            <div className="space-y-3">
-                                {['MVC', 'Component Based', 'Modular', 'Atomic'].map((option) => (
-                                    <label key={option} className="flex items-center space-x-3 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            name="architecture"
-                                            value={option}
-                                            checked={architecture === option}
-                                            onChange={(e) => setArchitecture(e.target.value)}
-                                            className="w-4 h-4 text-green-600 bg-gray-700 border-gray-600 focus:ring-green-500"
-                                        />
-                                        <span className="text-gray-300">{option}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column - Import/Upload and Screen Order */}
-                    <div className="space-y-6">
-                        {/* Import/Upload Section */}
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">Import / Upload Screens</h3>
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Left Column - Import/Upload Section */}
+                    <div className="lg:w-1/3">
+                        <div className="bg-white border-2 border-black rounded-lg p-6 h-64">
+                            <h3 className="text-xl font-bold text-black mb-4">Import / Upload Screens</h3>
                             <div className="space-y-4">
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center border border-black">
+                                        <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                         </svg>
                                     </div>
-                                    <span className="text-gray-300">Figma Icon</span>
+                                    <span className="text-black">Figma Icon</span>
                                 </div>
                                 <div className="flex items-center space-x-4">
-                                    <div className="w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center">
-                                        <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                                    <div className="w-12 h-12 bg-gray-200 rounded-lg flex items-center justify-center border border-black">
+                                        <svg className="w-6 h-6 text-black" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                         </svg>
                                     </div>
-                                    <span className="text-gray-300">GitHub Icon</span>
+                                    <span className="text-black">Github Icon</span>
                                 </div>
                                 <input
                                     type="file"
                                     multiple
                                     accept="image/*"
                                     onChange={(e) => handleFileUpload(e.target.files)}
-                                    className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-300"
+                                    className="w-full p-3 bg-white border-2 border-black rounded-lg text-black"
                                 />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column - Configuration Options */}
+                    <div className="lg:w-2/3 space-y-6">
+                        <div className="text-center mb-4">
+                            <span className="text-black font-bold">Radio Buttons</span>
+                        </div>
+                        
+                        <div className="flex space-x-4">
+                            {/* Framework Selection */}
+                            <div className="bg-white border-2 border-black rounded-lg p-4 flex-1">
+                                <h3 className="text-lg font-bold text-black mb-4">Framework</h3>
+                                <div className="space-y-3">
+                                    {['React', 'Angular', 'Vue.js', 'Svelte'].map((option) => (
+                                        <label key={option} className="flex items-center justify-between cursor-pointer">
+                                            <span className="text-black">{option}</span>
+                                            <input
+                                                type="radio"
+                                                name="framework"
+                                                value={option}
+                                                checked={framework === option}
+                                                onChange={(e) => setFramework(e.target.value)}
+                                                className="w-4 h-4 text-black bg-white border-2 border-black focus:ring-black"
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Styling Selection */}
+                            <div className="bg-white border-2 border-black rounded-lg p-4 flex-1">
+                                <h3 className="text-lg font-bold text-black mb-4">Styling</h3>
+                                <div className="space-y-3">
+                                    {['Tailwind CSS', 'Styled Comp', 'SCSS', 'PureCSS'].map((option) => (
+                                        <label key={option} className="flex items-center justify-between cursor-pointer">
+                                            <span className={`text-black ${option === 'PureCSS' ? 'border-b border-dashed border-red-500' : ''}`}>{option}</span>
+                                            <input
+                                                type="radio"
+                                                name="styling"
+                                                value={option}
+                                                checked={styling === option}
+                                                onChange={(e) => setStyling(e.target.value)}
+                                                className="w-4 h-4 text-black bg-white border-2 border-black focus:ring-black"
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Architecture Selection */}
+                            <div className="bg-white border-2 border-black rounded-lg p-4 flex-1">
+                                <h3 className="text-lg font-bold text-black mb-4">Architecture</h3>
+                                <div className="space-y-3">
+                                    {['MVC', 'Modular', 'Comp Based', 'Atomic'].map((option) => (
+                                        <label key={option} className="flex items-center justify-between cursor-pointer">
+                                            <span className="text-black">{option}</span>
+                                            <input
+                                                type="radio"
+                                                name="architecture"
+                                                value={option}
+                                                checked={architecture === option}
+                                                onChange={(e) => setArchitecture(e.target.value)}
+                                                className="w-4 h-4 text-black bg-white border-2 border-black focus:ring-black"
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
                         {/* Screen Order Display */}
-                        <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                            <h3 className="text-xl font-bold text-white mb-4">Once Uploaded Screen order appears</h3>
+                        <div className="bg-white border-2 border-black rounded-lg p-6">
+                            <h3 className="text-xl font-bold text-black mb-4">Once Uploaded Screen order appears</h3>
                             <div className="flex space-x-4 mb-6">
                                 {[1, 2, 3, 4].map((num) => (
-                                    <div key={num} className="w-24 h-24 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center">
-                                        <span className="text-2xl text-gray-500">{num}</span>
+                                    <div key={num} className="w-24 h-24 border-2 border-dotted border-black rounded-lg flex items-center justify-center">
+                                        <span className="text-2xl text-black">{num}</span>
                                     </div>
                                 ))}
                             </div>
-                            <button
-                                onClick={() => setCurrentScreen(2)}
-                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-                            >
-                                Submit
-                            </button>
+                            <div className="flex justify-end">
+                                <button
+                                    onClick={() => setCurrentScreen(2)}
+                                    className="bg-black text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                                >
+                                    Submit
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -186,17 +193,17 @@ export default App;`);
     );
 
     const renderScreen2 = () => (
-        <div className="min-h-screen bg-black text-white p-8">
+        <div className="min-h-screen bg-white text-black p-8">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-300">Screen 2</h1>
+                    <h1 className="text-2xl font-bold text-black">Screen 2</h1>
                     <div className="flex items-center space-x-4">
-                        <h2 className="text-4xl font-bold text-white">Digital Studio</h2>
+                        <h2 className="text-4xl font-bold text-black">Digital Studio</h2>
                         <div className="flex space-x-2">
                             {[1, 2, 3, 4].map((num) => (
                                 <div key={num} className={`w-8 h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-sm ${
-                                    num <= 2 ? 'border-green-500 text-green-500' : 'border-gray-600 text-gray-500'
+                                    num <= 2 ? 'border-black text-black' : 'border-gray-400 text-gray-400'
                                 }`}>
                                     {num}
                                 </div>
@@ -207,32 +214,32 @@ export default App;`);
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Panel - Code Generation */}
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Generate code for the screens and show animation when code generation completes for each screen</h3>
+                    <div className="bg-white border-2 border-black rounded-lg p-6">
+                        <h3 className="text-xl font-bold text-black mb-4">Generate code for the screens and show animation when code generation completes for each screen</h3>
                         {isGenerating && (
                             <div className="space-y-4">
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                                    <span className="text-gray-300">Generating code for screen 1...</span>
+                                    <div className="w-4 h-4 bg-black rounded-full animate-pulse"></div>
+                                    <span className="text-black">Generating code for screen 1...</span>
                                 </div>
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-4 h-4 bg-green-500 rounded-full animate-pulse"></div>
-                                    <span className="text-gray-300">Generating code for screen 2...</span>
+                                    <div className="w-4 h-4 bg-black rounded-full animate-pulse"></div>
+                                    <span className="text-black">Generating code for screen 2...</span>
                                 </div>
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-500">Generating code for screen 3...</span>
+                                    <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                                    <span className="text-gray-400">Generating code for screen 3...</span>
                                 </div>
                                 <div className="flex items-center space-x-3">
-                                    <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-500">Generating code for screen 4...</span>
+                                    <div className="w-4 h-4 bg-gray-400 rounded-full"></div>
+                                    <span className="text-gray-400">Generating code for screen 4...</span>
                                 </div>
                             </div>
                         )}
                         {!isGenerating && (
                             <button
                                 onClick={handleGenerateCode}
-                                className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                                className="bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg transition-colors"
                             >
                                 Generate Code
                             </button>
@@ -240,14 +247,14 @@ export default App;`);
                     </div>
 
                     {/* Right Panel - Preview */}
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Preview of generated code</h3>
+                    <div className="bg-white border-2 border-black rounded-lg p-6">
+                        <h3 className="text-xl font-bold text-black mb-4">Preview of generated code</h3>
                         {generatedCode ? (
-                            <pre className="bg-gray-800 p-4 rounded-lg text-sm text-gray-300 overflow-auto max-h-64">
+                            <pre className="bg-gray-100 p-4 rounded-lg text-sm text-black overflow-auto max-h-64 border border-gray-300">
                                 <code>{generatedCode}</code>
                             </pre>
                         ) : (
-                            <div className="text-gray-500 text-center py-8">
+                            <div className="text-gray-400 text-center py-8">
                                 Generated code will appear here
                             </div>
                         )}
@@ -258,7 +265,7 @@ export default App;`);
                 <div className="mt-8 flex justify-end">
                     <button
                         onClick={() => setShowLogicPopup(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                        className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                     >
                         Add logic
                     </button>
@@ -268,17 +275,17 @@ export default App;`);
     );
 
     const renderScreen3 = () => (
-        <div className="min-h-screen bg-black text-white p-8">
+        <div className="min-h-screen bg-white text-black p-8">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-gray-300">Screen 3</h1>
+                    <h1 className="text-2xl font-bold text-black">Screen 3</h1>
                     <div className="flex items-center space-x-4">
-                        <h2 className="text-4xl font-bold text-white">Design Studio</h2>
+                        <h2 className="text-4xl font-bold text-black">Design Studio</h2>
                         <div className="flex space-x-2">
                             {[1, 2, 3].map((num) => (
                                 <div key={num} className={`w-8 h-8 rounded-lg border-2 border-dashed flex items-center justify-center text-sm ${
-                                    num <= 3 ? 'border-green-500 text-green-500' : 'border-gray-600 text-gray-500'
+                                    num <= 3 ? 'border-black text-black' : 'border-gray-400 text-gray-400'
                                 }`}>
                                     {num}
                                 </div>
@@ -289,28 +296,28 @@ export default App;`);
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* Left Panel - Code Generation */}
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Generate code for the screens and show animation when code generation completes for each screen with input provided by user making changes to previous generated code</h3>
+                    <div className="bg-white border-2 border-black rounded-lg p-6">
+                        <h3 className="text-xl font-bold text-black mb-4">Generate code for the screens and show animation when code generation completes for each screen with input provided by user making changes to previous generated code</h3>
                         <div className="space-y-4">
                             <div className="flex items-center space-x-3">
-                                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                                <span className="text-gray-300">Screen 1 completed</span>
+                                <div className="w-4 h-4 bg-black rounded-full"></div>
+                                <span className="text-black">Screen 1 completed</span>
                             </div>
                             <div className="flex items-center space-x-3">
-                                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                                <span className="text-gray-300">Screen 2 completed</span>
+                                <div className="w-4 h-4 bg-black rounded-full"></div>
+                                <span className="text-black">Screen 2 completed</span>
                             </div>
                             <div className="flex items-center space-x-3">
-                                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                                <span className="text-gray-300">Screen 3 completed</span>
+                                <div className="w-4 h-4 bg-black rounded-full"></div>
+                                <span className="text-black">Screen 3 completed</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Right Panel - Preview */}
-                    <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                        <h3 className="text-xl font-bold text-white mb-4">Preview of generated code</h3>
-                        <pre className="bg-gray-800 p-4 rounded-lg text-sm text-gray-300 overflow-auto max-h-64">
+                    <div className="bg-white border-2 border-black rounded-lg p-6">
+                        <h3 className="text-xl font-bold text-black mb-4">Preview of generated code</h3>
+                        <pre className="bg-gray-100 p-4 rounded-lg text-sm text-black overflow-auto max-h-64 border border-gray-300">
                             <code>{generatedCode}</code>
                         </pre>
                     </div>
@@ -324,7 +331,7 @@ export default App;`);
                     >
                         Download
                     </button>
-                    <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center space-x-2">
+                    <button className="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center space-x-2">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                         </svg>
@@ -337,25 +344,25 @@ export default App;`);
 
     const renderLogicPopup = () => (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 w-full max-w-md">
-                <h3 className="text-xl font-bold text-white mb-4">Add Logic & Routing</h3>
+            <div className="bg-white border-2 border-black rounded-lg p-6 w-full max-w-md">
+                <h3 className="text-xl font-bold text-black mb-4">Add Logic & Routing</h3>
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-gray-300 mb-2">Custom Logic</label>
+                        <label className="block text-black mb-2">Custom Logic</label>
                         <textarea
                             value={customLogic}
                             onChange={(e) => setCustomLogic(e.target.value)}
                             placeholder="Enter any custom logic or changes..."
-                            className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-300 resize-none h-24"
+                            className="w-full p-3 bg-white border-2 border-black rounded-lg text-black resize-none h-24"
                         />
                     </div>
                     <div>
-                        <label className="block text-gray-300 mb-2">Routing</label>
+                        <label className="block text-black mb-2">Routing</label>
                         <textarea
                             value={routing}
                             onChange={(e) => setRouting(e.target.value)}
                             placeholder="Enter routing configuration..."
-                            className="w-full p-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-300 resize-none h-24"
+                            className="w-full p-3 bg-white border-2 border-black rounded-lg text-black resize-none h-24"
                         />
                     </div>
                     <div className="flex space-x-3">
@@ -370,7 +377,7 @@ export default App;`);
                                 setShowLogicPopup(false);
                                 setCurrentScreen(3);
                             }}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors"
+                            className="flex-1 bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition-colors"
                         >
                             Apply
                         </button>
@@ -385,7 +392,7 @@ export default App;`);
             {/* Back Button */}
             <button
                 onClick={() => onNavigate('landing')}
-                className="absolute top-4 left-4 bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-colors z-10"
+                className="absolute top-4 left-4 bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition-colors z-10"
             >
                 ← Back
             </button>
@@ -398,8 +405,8 @@ export default App;`);
                         onClick={() => setCurrentScreen(screen)}
                         className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm transition-colors ${
                             currentScreen === screen
-                                ? 'border-green-500 text-green-500'
-                                : 'border-gray-600 text-gray-500 hover:border-gray-400'
+                                ? 'border-black text-black'
+                                : 'border-gray-400 text-gray-400 hover:border-gray-600'
                         }`}
                     >
                         {screen}
