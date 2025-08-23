@@ -4,28 +4,28 @@
   "installCommand": "npm install",
   "framework": "vite",
   "functions": {
-    "backend/api/generate-code.js": {
+    "api/generate-code.js": {
       "maxDuration": 60
     },
-    "backend/api/projects.js": {
+    "api/projects.js": {
       "maxDuration": 30
     },
-    "backend/api/health.js": {
+    "api/health.js": {
       "maxDuration": 10
     }
   },
   "rewrites": [
     {
       "source": "/api/health",
-      "destination": "/backend/api/health.js"
+      "destination": "/api/health.js"
     },
     {
       "source": "/api/generate-code",
-      "destination": "/backend/api/generate-code.js"
+      "destination": "/api/generate-code.js"
     },
     {
       "source": "/api/projects",
-      "destination": "/backend/api/projects.js"
+      "destination": "/api/projects.js"
     },
     {
       "source": "/(.*)",
