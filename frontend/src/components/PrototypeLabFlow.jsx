@@ -58,7 +58,14 @@ export default App;`);
     };
 
     const renderScreen1 = () => (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300 relative overflow-hidden">
+            {/* Professional Background Pattern */}
+            <div className="absolute inset-0 opacity-5">
+                <div className="absolute inset-0" style={{
+                    backgroundImage: `radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                                    radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.1) 0%, transparent 50%)`
+                }}></div>
+            </div>
             {/* Top Header with Navigation */}
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
@@ -205,8 +212,9 @@ export default App;`);
                 <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-gray-200">Import / Upload Screens</h3>
+                            <div className="flex-1 h-px bg-gradient-to-r from-purple-400/20 to-transparent"></div>
                         </div>
                         <div className="space-y-4">
                             <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl cursor-pointer hover:shadow-lg transition-all duration-300">
@@ -248,13 +256,14 @@ export default App;`);
 
                 {/* Main Area - Screen Order Display */}
                 <div className="flex-1 p-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm relative">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-gray-200">Screen Flow Preview</h3>
+                            <div className="flex-1 h-px bg-gradient-to-r from-green-400/20 to-transparent"></div>
                         </div>
                         {uploadedScreens.length === 0 ? (
-                            <div className="flex items-center justify-center h-[calc(100%-100px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600">
+                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600">
                                 <div className="text-center">
                                     <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                                         <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,8 +288,8 @@ export default App;`);
                     </div>
                 </div>
                 
-                {/* Submit Button - Outside Main Container */}
-                <div className="absolute bottom-6 right-6 z-10">
+                {/* Submit Button - Professional Positioning */}
+                <div className="absolute bottom-8 right-8 z-10">
                     <button
                         onClick={() => setCurrentScreen(2)}
                         disabled={uploadedScreens.length === 0}

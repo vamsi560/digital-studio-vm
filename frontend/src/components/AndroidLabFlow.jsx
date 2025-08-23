@@ -255,7 +255,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
 
                 {/* Main Area - Screen Order Display */}
                 <div className="flex-1 p-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm relative">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                             <h3 className="text-lg font-bold text-gray-200">Android Screen Flow Preview</h3>
