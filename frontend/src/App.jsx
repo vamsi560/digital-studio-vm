@@ -3,6 +3,8 @@ import { LiveProvider, LivePreview, LiveError } from 'react-live';
 import Cookies from 'js-cookie';
 import AdvancedReactPreview from './components/advanced-react-preview';
 import PrototypeLabFlow from './components/PrototypeLabFlow';
+import AndroidLabFlow from './components/AndroidLabFlow';
+import IOSLabFlow from './components/IOSLabFlow';
 
 // --- Reusable UI Components ---
 
@@ -1033,8 +1035,12 @@ function App() {
         switch (view) {
             case 'landing':
                 return <LandingView onNavigate={handleNavigate} />;
-            case 'prototype':
-                return <PrototypeLabFlow onNavigate={handleNavigate} />;
+                    case 'prototype':
+            return <PrototypeLabFlow onNavigate={handleNavigate} />;
+        case 'android':
+            return <AndroidLabFlow onNavigate={handleNavigate} />;
+        case 'ios':
+            return <IOSLabFlow onNavigate={handleNavigate} />;
             case 'app-lab-landing':
                 return <AppLabLandingView onNavigate={handleNavigate} />;
             case 'app-lab-generate':

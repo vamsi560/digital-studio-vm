@@ -15,6 +15,18 @@
   ],
   "routes": [
     {
+      "src": "/api/health",
+      "dest": "backend/api/health.js"
+    },
+    {
+      "src": "/api/generate-code",
+      "dest": "backend/api/generate-code.js"
+    },
+    {
+      "src": "/api/projects",
+      "dest": "backend/api/projects.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "backend/api/$1.js"
     },
@@ -22,5 +34,19 @@
       "src": "/(.*)",
       "dest": "/frontend/$1"
     }
-  ]
+  ],
+  "functions": {
+    "backend/api/generate-code.js": {
+      "maxDuration": 60
+    },
+    "backend/api/projects.js": {
+      "maxDuration": 30
+    },
+    "backend/api/health.js": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
