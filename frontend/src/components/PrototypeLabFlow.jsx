@@ -58,80 +58,109 @@ export default App;`);
     };
 
     const renderScreen1 = () => (
-        <div className="min-h-screen bg-black text-gray-300">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
-            <div className="bg-gray-900 border-b border-gray-700 px-6 py-4">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-8 py-6 shadow-xl">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-8">
                         <button 
                             onClick={() => onNavigate('landing')}
-                            className="bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-2 rounded-lg transition-colors"
+                            className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30"
                         >
-                            ← Back
+                            <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                <span className="font-semibold">Back</span>
+                            </div>
                         </button>
-                        <div>
-                            <h1 className="text-lg font-medium text-gray-400">Screen 1</h1>
-                            <h2 className="text-2xl font-bold text-gray-300">Digital Studio</h2>
+                        <div className="space-y-1">
+                            <h1 className="text-sm font-medium text-gray-400 uppercase tracking-wider">Screen 1</h1>
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Digital Studio</h2>
                         </div>
                     </div>
                     
                     {/* Configuration Boxes */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-6">
                         {/* Framework Selection */}
-                        <div className="bg-gray-800 border border-gray-600 rounded-xl p-4 min-w-[180px]">
-                            <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Framework</h3>
-                            <div className="space-y-2">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 min-w-[200px] shadow-xl backdrop-blur-sm">
+                            <div className="flex items-center space-x-2 mb-4">
+                                <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Framework</h3>
+                            </div>
+                            <div className="space-y-3">
                                 {['React', 'Angular', 'Vue.js', 'Svelte'].map((option) => (
-                                    <label key={option} className="flex items-center justify-between cursor-pointer group">
-                                        <span className="text-gray-300 text-sm group-hover:text-gray-200 transition-colors">{option}</span>
-                                        <input
-                                            type="radio"
-                                            name="framework"
-                                            value={option}
-                                            checked={framework === option}
-                                            onChange={(e) => setFramework(e.target.value)}
-                                            className="w-4 h-4 text-gray-400 bg-gray-700 border-gray-500 focus:ring-gray-400 focus:ring-2"
-                                        />
+                                    <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200">
+                                        <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
+                                        <div className="relative">
+                                            <input
+                                                type="radio"
+                                                name="framework"
+                                                value={option}
+                                                checked={framework === option}
+                                                onChange={(e) => setFramework(e.target.value)}
+                                                className="w-4 h-4 text-blue-500 bg-gray-700 border-gray-500 focus:ring-blue-400 focus:ring-2 rounded-full"
+                                            />
+                                            {framework === option && (
+                                                <div className="absolute inset-0 w-4 h-4 bg-blue-500 rounded-full animate-ping opacity-20"></div>
+                                            )}
+                                        </div>
                                     </label>
                                 ))}
                             </div>
                         </div>
 
                         {/* Styling Selection */}
-                        <div className="bg-gray-800 border border-gray-600 rounded-xl p-4 min-w-[180px]">
-                            <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Styling</h3>
-                            <div className="space-y-2">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 min-w-[200px] shadow-xl backdrop-blur-sm">
+                            <div className="flex items-center space-x-2 mb-4">
+                                <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Styling</h3>
+                            </div>
+                            <div className="space-y-3">
                                 {['Tailwind CSS', 'Styled Comp', 'SCSS', 'PureCSS'].map((option) => (
-                                    <label key={option} className="flex items-center justify-between cursor-pointer group">
-                                        <span className={`text-gray-300 text-sm group-hover:text-gray-200 transition-colors ${option === 'PureCSS' ? 'border-b border-dashed border-red-500' : ''}`}>{option}</span>
-                                        <input
-                                            type="radio"
-                                            name="styling"
-                                            value={option}
-                                            checked={styling === option}
-                                            onChange={(e) => setStyling(e.target.value)}
-                                            className="w-4 h-4 text-gray-400 bg-gray-700 border-gray-500 focus:ring-gray-400 focus:ring-2"
-                                        />
+                                    <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200">
+                                        <span className={`text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors ${option === 'PureCSS' ? 'border-b border-dashed border-red-400' : ''}`}>{option}</span>
+                                        <div className="relative">
+                                            <input
+                                                type="radio"
+                                                name="styling"
+                                                value={option}
+                                                checked={styling === option}
+                                                onChange={(e) => setStyling(e.target.value)}
+                                                className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-500 focus:ring-purple-400 focus:ring-2 rounded-full"
+                                            />
+                                            {styling === option && (
+                                                <div className="absolute inset-0 w-4 h-4 bg-purple-500 rounded-full animate-ping opacity-20"></div>
+                                            )}
+                                        </div>
                                     </label>
                                 ))}
                             </div>
                         </div>
 
                         {/* Architecture Selection */}
-                        <div className="bg-gray-800 border border-gray-600 rounded-xl p-4 min-w-[180px]">
-                            <h3 className="text-sm font-semibold text-gray-400 mb-3 uppercase tracking-wide">Architecture</h3>
-                            <div className="space-y-2">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 min-w-[200px] shadow-xl backdrop-blur-sm">
+                            <div className="flex items-center space-x-2 mb-4">
+                                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Architecture</h3>
+                            </div>
+                            <div className="space-y-3">
                                 {['MVC', 'Modular', 'Comp Based', 'Atomic'].map((option) => (
-                                    <label key={option} className="flex items-center justify-between cursor-pointer group">
-                                        <span className="text-gray-300 text-sm group-hover:text-gray-200 transition-colors">{option}</span>
-                                        <input
-                                            type="radio"
-                                            name="architecture"
-                                            value={option}
-                                            checked={architecture === option}
-                                            onChange={(e) => setArchitecture(e.target.value)}
-                                            className="w-4 h-4 text-gray-400 bg-gray-700 border-gray-500 focus:ring-gray-400 focus:ring-2"
-                                        />
+                                    <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200">
+                                        <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
+                                        <div className="relative">
+                                            <input
+                                                type="radio"
+                                                name="architecture"
+                                                value={option}
+                                                checked={architecture === option}
+                                                onChange={(e) => setArchitecture(e.target.value)}
+                                                className="w-4 h-4 text-green-500 bg-gray-700 border-gray-500 focus:ring-green-400 focus:ring-2 rounded-full"
+                                            />
+                                            {architecture === option && (
+                                                <div className="absolute inset-0 w-4 h-4 bg-green-500 rounded-full animate-ping opacity-20"></div>
+                                            )}
+                                        </div>
                                     </label>
                                 ))}
                             </div>
@@ -139,27 +168,31 @@ export default App;`);
                     </div>
 
                     {/* Screen Navigation */}
-                    <div className="flex items-center space-x-3">
-                        <div className="flex space-x-2">
+                    <div className="flex items-center space-x-4">
+                        <div className="flex space-x-3">
                             <button 
                                 onClick={() => setCurrentScreen(1)}
-                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-colors ${
-                                    currentScreen === 1 ? 'border-gray-400 text-gray-400' : 'border-gray-600 text-gray-600 hover:border-gray-500'
+                                className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 transform hover:scale-110 ${
+                                    currentScreen === 1 
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20' 
+                                        : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
                                 }`}
                             >
                                 1
                             </button>
                             <button 
                                 onClick={() => setCurrentScreen(2)}
-                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-colors ${
-                                    currentScreen === 2 ? 'border-gray-400 text-gray-400' : 'border-gray-600 text-gray-600 hover:border-gray-500'
+                                className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 transform hover:scale-110 ${
+                                    currentScreen === 2 
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20' 
+                                        : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
                                 }`}
                             >
                                 2
                             </button>
                         </div>
-                        <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-                            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                        <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl flex items-center justify-center shadow-lg border border-gray-600/30">
+                            <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                             </svg>
                         </div>
@@ -168,38 +201,53 @@ export default App;`);
             </div>
 
             {/* Main Content Area */}
-            <div className="flex h-[calc(100vh-80px)]">
+            <div className="flex h-[calc(100vh-104px)]">
                 {/* Left Sidebar - Import/Upload Section */}
-                <div className="w-80 bg-gray-900 border-r border-gray-700 p-6">
-                    <div className="bg-gray-800 border border-gray-600 rounded-xl p-6 h-full">
-                        <h3 className="text-lg font-bold text-gray-300 mb-6">Import / Upload Screens</h3>
+                <div className="w-96 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-8">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 h-full shadow-2xl backdrop-blur-sm">
+                        <div className="flex items-center space-x-3 mb-8">
+                            <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"></div>
+                            <h3 className="text-xl font-bold text-gray-200">Import / Upload Screens</h3>
+                        </div>
                         <div className="space-y-6">
-                            <div className="flex items-center space-x-4 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-                                <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
+                            <div className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl p-4 transition-all duration-300 cursor-pointer transform hover:scale-105 shadow-lg hover:shadow-xl border border-gray-600/30">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                                        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-200 font-semibold text-lg">Figma Icon</span>
+                                        <p className="text-gray-400 text-sm">Import from Figma</p>
+                                    </div>
                                 </div>
-                                <span className="text-gray-300 font-medium">Figma Icon</span>
                             </div>
                             
-                            <div className="flex items-center space-x-4 p-3 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors cursor-pointer">
-                                <div className="w-12 h-12 bg-gray-600 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
-                                    </svg>
+                            <div className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 rounded-xl p-4 transition-all duration-300 cursor-pointer transform hover:scale-105 shadow-lg hover:shadow-xl border border-gray-600/30">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300">
+                                        <svg className="w-7 h-7 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <span className="text-gray-200 font-semibold text-lg">Github Icon</span>
+                                        <p className="text-gray-400 text-sm">Import from GitHub</p>
+                                    </div>
                                 </div>
-                                <span className="text-gray-300 font-medium">Github Icon</span>
                             </div>
                             
                             <div className="mt-8">
-                                <label className="flex items-center justify-center w-full p-4 border-2 border-dashed border-gray-600 rounded-xl bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer">
+                                <label className="group flex items-center justify-center w-full p-8 border-2 border-dashed border-gray-600 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 transition-all duration-300 cursor-pointer transform hover:scale-105 shadow-lg hover:shadow-xl">
                                     <div className="text-center">
-                                        <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                        </svg>
-                                        <span className="text-gray-300 font-medium">Choose Files</span>
-                                        <p className="text-gray-500 text-sm mt-1">No file chosen</p>
+                                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:shadow-xl transition-all duration-300">
+                                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                            </svg>
+                                        </div>
+                                        <span className="text-gray-200 font-bold text-lg">Choose Files</span>
+                                        <p className="text-gray-400 text-sm mt-2">No file chosen</p>
                                     </div>
                                     <input
                                         type="file"
@@ -215,37 +263,48 @@ export default App;`);
                 </div>
 
                 {/* Main Area - Screen Order Display */}
-                <div className="flex-1 p-6">
-                    <div className="bg-gray-800 border border-gray-600 rounded-xl p-8 h-full">
-                        <h3 className="text-xl font-bold text-gray-300 mb-6">Once Uploaded Screen order appears</h3>
+                <div className="flex-1 p-8">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 h-full shadow-2xl backdrop-blur-sm relative">
+                        <div className="flex items-center space-x-3 mb-8">
+                            <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-blue-400 rounded-full"></div>
+                            <h3 className="text-2xl font-bold text-gray-200">Once Uploaded Screen order appears</h3>
+                        </div>
                         {uploadedScreens.length === 0 ? (
-                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600 rounded-xl bg-gray-700">
+                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-2xl bg-gradient-to-br from-gray-700 to-gray-600">
                                 <div className="text-center">
-                                    <svg className="w-16 h-16 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                    </svg>
-                                    <p className="text-gray-500 text-lg">Upload images to see screen order</p>
+                                    <div className="w-24 h-24 bg-gradient-to-br from-gray-600 to-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                    </div>
+                                    <p className="text-gray-400 text-xl font-medium">Upload images to see screen order</p>
+                                    <p className="text-gray-500 text-sm mt-2">Drag and drop your screens here</p>
                                 </div>
                             </div>
                         ) : (
                             <div className="space-y-6">
-                                <div className="grid grid-cols-4 gap-4">
+                                <div className="grid grid-cols-4 gap-6">
                                     {uploadedScreens.map((screen, index) => (
-                                        <div key={screen.id} className="aspect-square border-2 border-dotted border-gray-600 rounded-xl flex items-center justify-center bg-gray-700 overflow-hidden">
-                                            <img src={screen.url} alt={screen.name} className="w-full h-full object-cover" />
+                                        <div key={screen.id} className="group aspect-square border-2 border-dotted border-gray-600/50 rounded-2xl flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                                            <img src={screen.url} alt={screen.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         )}
                         
-                        <div className="absolute bottom-6 right-6">
+                        <div className="absolute bottom-8 right-8">
                             <button
                                 onClick={() => setCurrentScreen(2)}
                                 disabled={uploadedScreens.length === 0}
-                                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-gray-300 font-bold py-3 px-8 rounded-xl transition-colors shadow-lg"
+                                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-4 px-10 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl"
                             >
-                                Submit
+                                <div className="flex items-center space-x-2">
+                                    <span>Submit</span>
+                                    <svg className="w-5 h-5 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                    </svg>
+                                </div>
                             </button>
                         </div>
                     </div>
