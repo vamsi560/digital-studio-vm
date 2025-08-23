@@ -67,7 +67,7 @@ const IOSLabFlow = ({ onNavigate }) => {
     const renderScreen1 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-8 py-6 shadow-xl">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-8">
                         <button 
@@ -207,9 +207,9 @@ const IOSLabFlow = ({ onNavigate }) => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex h-[calc(100vh-104px)]">
+            <div className="flex h-[calc(100vh-88px)]">
                 {/* Left Sidebar - Import/Upload Section */}
-                <div className="w-80 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-6">
+                <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
@@ -254,7 +254,7 @@ const IOSLabFlow = ({ onNavigate }) => {
                 </div>
 
                 {/* Main Area - Screen Order Display */}
-                <div className="flex-1 p-6">
+                <div className="flex-1 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm relative">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-blue-400 rounded-full"></div>

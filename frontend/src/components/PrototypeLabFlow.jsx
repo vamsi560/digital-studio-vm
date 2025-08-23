@@ -60,7 +60,7 @@ export default App;`);
     const renderScreen1 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-8 py-6 shadow-xl">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-8">
                         <button 
@@ -80,9 +80,9 @@ export default App;`);
                     </div>
                     
                     {/* Configuration Boxes */}
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-4">
                         {/* Framework Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 min-w-[200px] shadow-xl backdrop-blur-sm">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[180px] shadow-xl backdrop-blur-sm">
                             <div className="flex items-center space-x-2 mb-4">
                                 <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
                                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Framework</h3>
@@ -110,7 +110,7 @@ export default App;`);
                         </div>
 
                         {/* Styling Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 min-w-[200px] shadow-xl backdrop-blur-sm">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[180px] shadow-xl backdrop-blur-sm">
                             <div className="flex items-center space-x-2 mb-4">
                                 <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
                                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Styling</h3>
@@ -138,7 +138,7 @@ export default App;`);
                         </div>
 
                         {/* Architecture Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 min-w-[200px] shadow-xl backdrop-blur-sm">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[180px] shadow-xl backdrop-blur-sm">
                             <div className="flex items-center space-x-2 mb-4">
                                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                                 <h3 className="text-sm font-bold text-gray-300 uppercase tracking-wider">Architecture</h3>
@@ -200,9 +200,9 @@ export default App;`);
             </div>
 
             {/* Main Content Area */}
-            <div className="flex h-[calc(100vh-104px)]">
+            <div className="flex h-[calc(100vh-88px)]">
                 {/* Left Sidebar - Import/Upload Section */}
-                <div className="w-80 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-6">
+                <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
@@ -247,7 +247,7 @@ export default App;`);
                 </div>
 
                 {/* Main Area - Screen Order Display */}
-                <div className="flex-1 p-6">
+                <div className="flex-1 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 h-full shadow-2xl backdrop-blur-sm relative">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-green-400 rounded-full"></div>
@@ -276,22 +276,23 @@ export default App;`);
                                 </div>
                             </div>
                         )}
-                        
-                        <div className="absolute bottom-6 right-6">
-                            <button
-                                onClick={() => setCurrentScreen(2)}
-                                disabled={uploadedScreens.length === 0}
-                                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <span>Submit</span>
-                                    <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                    </svg>
-                                </div>
-                            </button>
-                        </div>
                     </div>
+                </div>
+                
+                {/* Submit Button - Outside Main Container */}
+                <div className="absolute bottom-6 right-6 z-10">
+                    <button
+                        onClick={() => setCurrentScreen(2)}
+                        disabled={uploadedScreens.length === 0}
+                        className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <span>Submit</span>
+                            <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                            </svg>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -300,7 +301,7 @@ export default App;`);
     const renderScreen2 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-8 py-6 shadow-xl">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-8">
                         <button 
@@ -353,8 +354,8 @@ export default App;`);
             </div>
 
             {/* Main Content Area */}
-            <div className="p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+            <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
                     {/* Left Panel - Code Generation */}
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
                         <h3 className="text-xl font-bold text-gray-200 mb-6">Code Generation Progress</h3>
@@ -432,7 +433,7 @@ export default App;`);
     const renderScreen3 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-8 py-6 shadow-xl">
+            <div className="bg-gradient-to-br from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-8">
                         <button 
@@ -517,7 +518,7 @@ export default App;`);
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-8 flex justify-end space-x-4">
+                    <div className="mt-6 flex justify-end space-x-4">
                         <button
                             onClick={handleDownload}
                             className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
