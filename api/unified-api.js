@@ -89,6 +89,30 @@ export default async function handler(req, res) {
       case 'enhanced_api':
         return await handleEnhancedAPI(req, res);
       
+      case 'enhanced_figma_integration':
+        return await handleEnhancedFigmaIntegration(req, res);
+      
+      case 'enhanced_code_generator':
+        return await handleEnhancedCodeGenerator(req, res);
+      
+      case 'enhanced_live_preview':
+        return await handleEnhancedLivePreview(req, res);
+      
+      case 'evaluator_agents':
+        return await handleEvaluatorAgents(req, res);
+      
+      case 'mcp_server':
+        return await handleMCPServer(req, res);
+      
+      case 'preview_config':
+        return await handlePreviewConfig(req, res);
+      
+      case 'status':
+        return await handleStatus(req, res);
+      
+      case 'download_zip':
+        return await handleDownloadZip(req, res);
+      
       default:
         return res.status(400).json({ error: 'Invalid action specified' });
     }
@@ -1050,4 +1074,262 @@ async function handleComponentAnalysis(req, res, data) {
     message: 'Component analysis completed',
     timestamp: new Date().toISOString()
   });
+}
+
+// Additional handler functions for consolidated APIs
+async function handleEnhancedFigmaIntegration(req, res) {
+  try {
+    const { figmaUrl, platform, framework, styling, architecture } = req.body;
+
+    if (!figmaUrl) {
+      return res.status(400).json({
+        success: false,
+        error: 'Figma URL is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('Enhanced Figma integration:', { figmaUrl, platform, framework });
+
+    // Enhanced Figma integration logic
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `Analyze this Figma design and provide enhanced integration insights: ${figmaUrl}`;
+    const result = await model.generateContent(prompt);
+    const analysis = result.response.text();
+
+    res.json({
+      success: true,
+      analysis,
+      figmaUrl,
+      platform: platform || 'web',
+      framework: framework || 'React',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Enhanced Figma integration error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+async function handleEnhancedCodeGenerator(req, res) {
+  try {
+    const { description, platform, framework, styling, architecture } = req.body;
+
+    if (!description) {
+      return res.status(400).json({
+        success: false,
+        error: 'Description is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('Enhanced code generation:', { description, platform, framework });
+
+    // Enhanced code generation logic
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `Generate enhanced ${framework} code for: ${description}. Platform: ${platform}, Styling: ${styling}, Architecture: ${architecture}`;
+    const result = await model.generateContent(prompt);
+    const generatedCode = result.response.text();
+
+    res.json({
+      success: true,
+      code: generatedCode,
+      description,
+      platform: platform || 'web',
+      framework: framework || 'React',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Enhanced code generator error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+async function handleEnhancedLivePreview(req, res) {
+  try {
+    const { code, framework, platform } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('Enhanced live preview generation:', { framework, platform });
+
+    // Enhanced live preview logic
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `Generate enhanced live preview for ${framework} code: ${code}`;
+    const result = await model.generateContent(prompt);
+    const enhancedPreview = result.response.text();
+
+    res.json({
+      success: true,
+      enhancedPreview,
+      framework: framework || 'React',
+      platform: platform || 'web',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Enhanced live preview error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+async function handleEvaluatorAgents(req, res) {
+  try {
+    const { code, framework, platform } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('Code evaluation:', { framework, platform });
+
+    // Code evaluation logic
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `Evaluate the quality of this ${framework} code for ${platform}: ${code}`;
+    const result = await model.generateContent(prompt);
+    const evaluation = result.response.text();
+
+    res.json({
+      success: true,
+      evaluation,
+      framework: framework || 'React',
+      platform: platform || 'web',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Evaluator agents error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+async function handleMCPServer(req, res) {
+  try {
+    const { description, platform } = req.body;
+
+    if (!description) {
+      return res.status(400).json({
+        success: false,
+        error: 'Description is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('MCP server generation:', { description, platform });
+
+    // MCP server generation logic
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const prompt = `Generate Model Context Protocol (MCP) server code for: ${description}. Platform: ${platform}`;
+    const result = await model.generateContent(prompt);
+    const mcpCode = result.response.text();
+
+    res.json({
+      success: true,
+      mcpCode,
+      description,
+      platform: platform || 'web',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('MCP server error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+async function handlePreviewConfig(req, res) {
+  try {
+    if (req.method === 'GET') {
+      // Return preview configuration
+      res.json({
+        success: true,
+        config: {
+          theme: 'dark',
+          fontSize: '14px',
+          showLineNumbers: true,
+          enableSyntaxHighlighting: true,
+          autoFormat: true,
+          livePreview: true
+        },
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      // Update preview configuration
+      const { config } = req.body;
+      
+      res.json({
+        success: true,
+        message: 'Preview configuration updated',
+        config: config || {},
+        timestamp: new Date().toISOString()
+      });
+    }
+
+  } catch (error) {
+    console.error('Preview config error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+async function handleStatus(req, res) {
+  try {
+    // Return system status
+    res.json({
+      success: true,
+      status: 'operational',
+      services: {
+        api: 'operational',
+        database: 'operational',
+        ai: 'operational',
+        figma: 'operational'
+      },
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+
+  } catch (error) {
+    console.error('Status API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
 } 

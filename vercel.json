@@ -12,33 +12,6 @@
     },
     "api/health.js": {
       "maxDuration": 10
-    },
-    "api/enhanced-figma-integration.js": {
-      "maxDuration": 60
-    },
-    "api/enhanced-code-generator.js": {
-      "maxDuration": 60
-    },
-    "api/enhanced-live-preview.js": {
-      "maxDuration": 60
-    },
-    "api/evaluator-agents.js": {
-      "maxDuration": 60
-    },
-    "api/mcp-server.js": {
-      "maxDuration": 60
-    },
-    "api/preview-config.js": {
-      "maxDuration": 30
-    },
-    "api/status.js": {
-      "maxDuration": 10
-    },
-    "api/enhanced-api.js": {
-      "maxDuration": 60
-    },
-    "api/download-zip.js": {
-      "maxDuration": 30
     }
   },
   "rewrites": [
@@ -76,39 +49,39 @@
     },
     {
       "source": "/api/download-zip",
-      "destination": "/api/download-zip.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-api",
-      "destination": "/api/enhanced-api.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-figma-integration",
-      "destination": "/api/enhanced-figma-integration.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-code-generator",
-      "destination": "/api/enhanced-code-generator.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-live-preview",
-      "destination": "/api/enhanced-live-preview.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/evaluator-agents",
-      "destination": "/api/evaluator-agents.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/mcp-server",
-      "destination": "/api/mcp-server.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/preview-config",
-      "destination": "/api/preview-config.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/status",
-      "destination": "/api/status.js"
+      "destination": "/api/unified-api.js"
     },
     {
       "source": "/api/analyze-prompt",
