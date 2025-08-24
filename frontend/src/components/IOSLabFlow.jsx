@@ -55,7 +55,7 @@ const IOSLabFlow = ({ onNavigate }) => {
             formData.append('customLogic', customLogic);
             formData.append('routing', routing);
 
-            const response = await fetch('/api/generate-code', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/generate-code', {
                 method: 'POST',
                 body: formData
             });

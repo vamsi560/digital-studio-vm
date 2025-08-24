@@ -22,7 +22,7 @@ const upload = multer({
 
 // CORS configuration
 const corsMiddleware = cors({
-  origin: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173',
+  origin: true, // Allow all origins for testing
   credentials: true
 });
 
@@ -41,23 +41,32 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { action, ...data } = req.body;
+    // Check if this is a form data request (from frontend) or JSON request
+    const contentType = req.headers['content-type'] || '';
+    
+    if (contentType.includes('multipart/form-data')) {
+      // Handle form data request from frontend
+      return await handleCodeGeneration(req, res);
+    } else {
+      // Handle JSON request with action parameter
+      const { action, ...data } = req.body || {};
 
-    switch (action) {
-      case 'generate_pixel_perfect_code':
-        return await handleCodeGeneration(req, res);
-      
-      case 'import_figma':
-        return await handleFigmaImport(req, res);
-      
-      case 'evaluate_code':
-        return await handleCodeEvaluation(req, res);
-      
-      case 'generate_analysis':
-        return await handleComponentAnalysis(req, res);
-      
-      default:
-        return res.status(400).json({ error: 'Invalid action specified' });
+      switch (action) {
+        case 'generate_pixel_perfect_code':
+          return await handleCodeGeneration(req, res);
+        
+        case 'import_figma':
+          return await handleFigmaImport(req, res);
+        
+        case 'evaluate_code':
+          return await handleCodeEvaluation(req, res);
+        
+        case 'generate_analysis':
+          return await handleComponentAnalysis(req, res);
+        
+        default:
+          return res.status(400).json({ error: 'Invalid action specified' });
+      }
     }
 
   } catch (error) {

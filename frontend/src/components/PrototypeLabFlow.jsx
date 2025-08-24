@@ -91,7 +91,7 @@ const PrototypeLabFlow = ({ onNavigate }) => {
 
             setWorkflowStatus({ text: 'Generating React components and structure...', step: 'generating' });
 
-            const response = await fetch('/api/generate-code', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/generate-code', {
                 method: 'POST',
                 body: formData,
             });

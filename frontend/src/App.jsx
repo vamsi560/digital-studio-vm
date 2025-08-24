@@ -220,7 +220,7 @@ const PrototypeView = ({ onNavigate, isJsZipLoaded }) => {
         setError('');
         setWorkflowStatus({ text: 'Importing from Figma...', architect: 'running' });
         try {
-            const response = await fetch('/api/import-figma', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/import-figma', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ figmaUrl }),
@@ -267,7 +267,7 @@ const PrototypeView = ({ onNavigate, isJsZipLoaded }) => {
 
         try {
             setWorkflowStatus({ text: 'Architect: Analyzing project structure...', architect: 'running' });
-            const response = await fetch('/api/generate-code', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/generate-code', {
                 method: 'POST',
                 body: formData,
             });
@@ -592,7 +592,7 @@ const AppLabGenerateView = ({ onNavigate, initialPlatform, isJsZipLoaded }) => {
 
         try {
             setWorkflowStatus({ text: 'Architect: Analyzing project structure...', architect: 'running' });
-            const response = await fetch('/api/generate-native-code', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/generate-native-code', {
                 method: 'POST',
                 body: formData,
             });
@@ -802,7 +802,7 @@ const IntegrationLabView = ({ onNavigate }) => {
         setError('');
         setRefinedPlan('');
         try {
-            const response = await fetch('/api/analyze-prompt', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/analyze-prompt', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt }),
@@ -831,7 +831,7 @@ const IntegrationLabView = ({ onNavigate }) => {
 
         try {
             setWorkflowStatus({ text: 'Architect: Analyzing requirements...', architect: 'running' });
-            const response = await fetch('/api/generate-from-text', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/generate-from-text', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1058,7 +1058,7 @@ function App() {
       setGithubExportStatus({ loading: true });
       setShowExportModal(false);
       try {
-        const res = await fetch('/api/github-export', {
+        const res = await fetch('https://digital-studio-vm.vercel.app/api/github-export', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
