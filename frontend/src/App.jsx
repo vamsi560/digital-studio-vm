@@ -17,11 +17,11 @@ const TrafficLights = () => (
 );
 
 const ServiceCard = ({ title, svgPath, onClick, disabled = false }) => (
-    <div onClick={!disabled ? onClick : undefined} className={`bg-[#1F2937] border border-[#374151] rounded-lg p-4 md:p-6 flex flex-col items-center justify-center h-full transition-all duration-300 ease-in-out ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-200 hover:-translate-y-1'}`}>
-        <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div onClick={!disabled ? onClick : undefined} className={`bg-[#1F2937] border border-[#374151] rounded-lg p-6 md:p-8 flex flex-col items-center justify-center h-48 transition-all duration-300 ease-in-out ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-200 hover:-translate-y-1'}`}>
+        <svg className="w-12 h-12 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={svgPath}></path>
         </svg>
-        <h3 className="font-semibold text-white text-base md:text-lg">{title}</h3>
+        <h3 className="font-semibold text-white text-lg md:text-xl">{title}</h3>
         {disabled && <span className="text-xs text-yellow-400 mt-2">Coming Soon</span>}
     </div>
 );

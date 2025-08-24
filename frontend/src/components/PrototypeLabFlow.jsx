@@ -153,6 +153,103 @@ const PrototypeLabFlow = ({ onNavigate }) => {
         document.body.removeChild(element);
     };
 
+    // Open in VS Code function
+    const handleOpenInVSCode = () => {
+        if (!generatedCode) return;
+        
+        // Create a temporary folder structure
+        const projectStructure = {
+            'package.json': JSON.stringify({
+                name: "digital-studio-project",
+                version: "1.0.0",
+                private: true,
+                dependencies: {
+                    "react": "^18.2.0",
+                    "react-dom": "^18.2.0"
+                },
+                devDependencies: {
+                    "@types/react": "^18.2.0",
+                    "@types/react-dom": "^18.2.0",
+                    "vite": "^4.0.0",
+                    "@vitejs/plugin-react": "^4.0.0"
+                },
+                scripts: {
+                    "dev": "vite",
+                    "build": "vite build",
+                    "preview": "vite preview"
+                }
+            }, null, 2),
+            'src/App.jsx': generatedCode,
+            'src/main.jsx': `import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+)`,
+            'index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Studio Project</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>`,
+            'README.md': `# Digital Studio Project
+
+This project was generated using Digital Studio VM.
+
+## Getting Started
+
+1. Install dependencies:
+\`\`\`bash
+npm install
+\`\`\`
+
+2. Start development server:
+\`\`\`bash
+npm run dev
+\`\`\`
+
+3. Build for production:
+\`\`\`bash
+npm run build
+\`\`\`
+
+Generated on: ${new Date().toISOString()}
+`
+        };
+
+        // Create a ZIP file
+        const zip = new JSZip();
+        
+        Object.entries(projectStructure).forEach(([path, content]) => {
+            zip.file(path, content);
+        });
+        
+        // Generate ZIP and create download link
+        zip.generateAsync({ type: "blob" }).then(content => {
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'digital-studio-project.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show instructions for opening in VS Code
+            alert('Project downloaded! To open in VS Code:\n\n1. Extract the ZIP file\n2. Open VS Code\n3. Go to File > Open Folder\n4. Select the extracted project folder\n\nOr use the command: code /path/to/extracted/folder');
+        });
+    };
+
     const handleAddLogic = (screenIndex) => {
         setSelectedScreenIndex(screenIndex);
         setShowLogicPopup(true);
@@ -265,11 +362,10 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                 },
                 body: JSON.stringify({
                     action: 'github_export',
-                    githubUrl,
-                    platform: 'web',
-                    framework,
-                    styling,
-                    architecture
+                    projectData: generatedProject || { mainCode: '// Sample code' },
+                    projectName: 'digital-studio-project',
+                    framework: framework,
+                    platform: 'web'
                 }),
             });
 
@@ -678,14 +774,14 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             {/* Top Header with Navigation */}
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-8">
+                    <div className="flex items-center space-x-4">
                         <button 
                             onClick={() => onNavigate('landing')}
                             className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30"
                         >
                             <div className="flex items-center space-x-2">
                                 <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                                 </svg>
                                 <span className="font-medium text-sm">Home</span>
                             </div>
@@ -701,13 +797,12 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                                 <span className="font-medium text-sm">Back to Setup</span>
                             </div>
                         </button>
-                        <div className="space-y-1">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Digital Studio</h2>
-                        </div>
                     </div>
                     
-                    {/* Screen Navigation */}
                     <div className="flex items-center space-x-4">
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Digital Studio</h2>
+                        
+                        {/* Screen Navigation */}
                         <div className="flex space-x-3">
                             <button 
                                 onClick={() => setCurrentScreen(1)}
@@ -736,6 +831,8 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                             </svg>
                         </div>
                     </div>
+                    
+
                 </div>
             </div>
 
@@ -1101,6 +1198,18 @@ export default Screen${selectedScreenIndex + 1};`}</code>
 
                     {/* Action Buttons */}
                     <div className="mt-6 flex justify-end space-x-4">
+                        <button
+                            onClick={handleOpenInVSCode}
+                            disabled={!generatedCode}
+                            className="group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-xl"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.15 2.587L18.21.21a1.494 1.494 0 0 0-1.705.29l-9.46 8.63-4.12-3.128a.999.999 0 0 0-.579-.215l-2.105-.004a1.001 1.001 0 0 0-.988 1.004l.022 2.12a1.001 1.001 0 0 0 .215.579l3.128 4.12-8.63 9.46a1.494 1.494 0 0 0-.29 1.705l2.377 4.94a1.5 1.5 0 0 0 1.705.29l4.94-2.377a1.494 1.494 0 0 0 1.705-.29l9.46-8.63 4.12 3.128a.999.999 0 0 0 .579.215l2.105.004a1.001 1.001 0 0 0 .988-1.004l-.022-2.12a1.001 1.001 0 0 0-.215-.579l-3.128-4.12 8.63-9.46a1.494 1.494 0 0 0 .29-1.705l-2.377-4.94a1.5 1.5 0 0 0-1.705-.29z"/>
+                                </svg>
+                                <span>Open in VS Code</span>
+                            </div>
+                        </button>
                         <button
                             onClick={handleDownload}
                             className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
