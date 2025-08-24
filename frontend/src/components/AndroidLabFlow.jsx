@@ -1,4 +1,6 @@
 import React, { useState, useCallback } from 'react';
+import FigmaImportModal from './FigmaImportModal';
+import GitHubImportModal from './GitHubImportModal';
 
 const AndroidLabFlow = ({ onNavigate }) => {
     const [currentScreen, setCurrentScreen] = useState(1);
@@ -17,6 +19,8 @@ const AndroidLabFlow = ({ onNavigate }) => {
     const [generatedProject, setGeneratedProject] = useState(null);
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(0);
     const [workflowStatus, setWorkflowStatus] = useState({});
+    const [showFigmaModal, setShowFigmaModal] = useState(false);
+    const [showGitHubModal, setShowGitHubModal] = useState(false);
 
     const handleFileUpload = useCallback((files) => {
         const newScreens = Array.from(files).map(file => ({
@@ -66,10 +70,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
     };
 
     // Figma import function
-    const handleFigmaImport = async () => {
-        const figmaUrl = prompt('Please enter your Figma file URL:');
-        if (!figmaUrl) return;
-
+    const handleFigmaImport = async (figmaUrl) => {
         setIsGenerating(true);
         setWorkflowStatus({ text: 'Importing from Figma...', step: 'importing' });
 
@@ -111,7 +112,56 @@ const AndroidLabFlow = ({ onNavigate }) => {
         } catch (error) {
             console.error('Error importing from Figma:', error);
             setWorkflowStatus({ text: 'Error importing from Figma. Please try again.', step: 'error' });
-            alert(`Figma import failed: ${error.message}`);
+            throw error; // Re-throw to be handled by the modal
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    // GitHub import function
+    const handleGitHubImport = async (githubUrl) => {
+        setIsGenerating(true);
+        setWorkflowStatus({ text: 'Importing from GitHub...', step: 'importing' });
+
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/github-export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'github_export',
+                    githubUrl,
+                    platform: 'android',
+                    framework: language,
+                    styling: 'Material Design',
+                    architecture
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                setGeneratedProject(data);
+                setGeneratedCode(data.mainCode || '// Generated code will appear here');
+                setWorkflowStatus({ text: 'GitHub import completed!', step: 'completed' });
+                
+                // Move to screen 2 after successful import
+                setTimeout(() => {
+                    setCurrentScreen(2);
+                }, 1000);
+            } else {
+                throw new Error(data.error || 'Import failed');
+            }
+
+        } catch (error) {
+            console.error('Error importing from GitHub:', error);
+            setWorkflowStatus({ text: 'Error importing from GitHub. Please try again.', step: 'error' });
+            throw error; // Re-throw to be handled by the modal
         } finally {
             setIsGenerating(false);
         }
@@ -355,7 +405,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
                         </div>
                         <div className="space-y-4">
                             <button 
-                                onClick={handleFigmaImport}
+                                onClick={() => setShowFigmaModal(true)}
                                 className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
                             >
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -364,7 +414,10 @@ const AndroidLabFlow = ({ onNavigate }) => {
                                 <span className="text-white font-medium text-sm">Import from Figma</span>
                             </button>
                             
-                            <button className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-gray-400/50">
+                            <button 
+                                onClick={() => setShowGitHubModal(true)}
+                                className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-gray-400/50"
+                            >
                                 <svg className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                 </svg>
@@ -720,6 +773,28 @@ const AndroidLabFlow = ({ onNavigate }) => {
             {currentScreen === 1 && renderScreen1()}
             {currentScreen === 2 && renderScreen2()}
             {showLogicPopup && renderLogicPopup()}
+            
+            {/* Figma Import Modal */}
+            <FigmaImportModal
+                isOpen={showFigmaModal}
+                onClose={() => setShowFigmaModal(false)}
+                onImport={handleFigmaImport}
+                platform="android"
+                framework={language}
+                styling="Material Design"
+                architecture={architecture}
+            />
+            
+            {/* GitHub Import Modal */}
+            <GitHubImportModal
+                isOpen={showGitHubModal}
+                onClose={() => setShowGitHubModal(false)}
+                onImport={handleGitHubImport}
+                platform="android"
+                framework={language}
+                styling="Material Design"
+                architecture={architecture}
+            />
         </div>
     );
 };
