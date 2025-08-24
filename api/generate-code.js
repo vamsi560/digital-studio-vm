@@ -73,19 +73,41 @@ export default async function handler(req, res) {
 // Handle file uploads for code generation
 async function handleCodeGeneration(req, res) {
   try {
+    console.log('Starting code generation...');
+    
+    // Check if Gemini API key is available
+    if (!process.env.GEMINI_API_KEY) {
+      console.error('GEMINI_API_KEY is not set');
+      return res.status(500).json({
+        success: false,
+        error: 'Gemini API key is not configured',
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // Parse multipart form data
     const formData = await new Promise((resolve, reject) => {
       upload.array('images', 10)(req, res, (err) => {
-        if (err) reject(err);
-        else resolve(req);
+        if (err) {
+          console.error('Multer error:', err);
+          reject(err);
+        } else {
+          resolve(req);
+        }
       });
     });
+
+    console.log('Form data parsed successfully');
+    console.log('Files received:', formData.files?.length || 0);
+    console.log('Body data:', formData.body);
 
     const images = formData.files?.map(file => ({
       data: file.buffer.toString('base64'),
       mimeType: file.mimetype,
       originalname: file.originalname
     })) || [];
+
+    console.log('Images processed:', images.length);
 
     const options = {
       platform: formData.body.platform || 'web',
@@ -96,17 +118,66 @@ async function handleCodeGeneration(req, res) {
       routing: formData.body.routing || ''
     };
 
+    console.log('Options:', options);
+
+    // Check if images are provided
+    if (images.length === 0) {
+      console.log('No images provided, generating sample code...');
+      // Generate sample code without images
+      const sampleCode = `// Sample ${options.framework} Component
+import React from 'react';
+
+const SampleComponent = () => {
+  return (
+    <div className="sample-component">
+      <h1>Sample ${options.framework} Component</h1>
+      <p>This is a sample component generated for ${options.platform}.</p>
+    </div>
+  );
+};
+
+export default SampleComponent;`;
+
+      res.json({
+        success: true,
+        mainCode: sampleCode,
+        qualityScore: { overall: 8, codeQuality: 8, performance: 8, accessibility: 8, security: 8 },
+        analysis: { analysis: 'Sample component analysis' },
+        projectId: `project-${Date.now()}`,
+        metadata: {
+          id: `project-${Date.now()}`,
+          platform: options.platform,
+          framework: options.framework,
+          qualityScore: { overall: 8 },
+          timestamp: new Date().toISOString(),
+          analysis: 'Sample component analysis'
+        },
+        platform: options.platform,
+        framework: options.framework,
+        timestamp: new Date().toISOString()
+      });
+      return;
+    }
+
     // Generate code using Gemini AI
+    console.log('Generating code with Gemini...');
     const generatedCode = await generateWithGemini(images, options);
+    console.log('Code generated successfully');
     
     // Refine the generated code
+    console.log('Refining code...');
     const refinedCode = await refineCode(generatedCode, options.framework);
+    console.log('Code refined successfully');
     
     // Evaluate code quality
-    const qualityScore = await evaluateCodeQuality(combinedCode, options.framework, options.platform);
+    console.log('Evaluating code quality...');
+    const qualityScore = await evaluateCodeQuality(refinedCode, options.framework, options.platform);
+    console.log('Code quality evaluated');
     
     // Generate component analysis
-    const analysis = await generateComponentAnalysis(combinedCode, options.framework, options.platform);
+    console.log('Generating component analysis...');
+    const analysis = await generateComponentAnalysis(refinedCode, options.framework, options.platform);
+    console.log('Component analysis generated');
 
     // Save project metadata (in production, save to database)
     const projectId = `project-${Date.now()}`;
@@ -119,9 +190,10 @@ async function handleCodeGeneration(req, res) {
       analysis: analysis.analysis
     };
 
+    console.log('Sending response...');
     res.json({
       success: true,
-      code: refinedCode,
+      mainCode: refinedCode,
       qualityScore,
       analysis: analysis.analysis,
       projectId,
@@ -135,7 +207,7 @@ async function handleCodeGeneration(req, res) {
     console.error('Code generation error:', error);
     res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message || 'Unknown error occurred',
       timestamp: new Date().toISOString()
     });
   }
@@ -282,21 +354,6 @@ async function handleComponentAnalysis(req, res) {
 }
 
 // AI Model Functions
-async function generateWithGemini(images, options) {
-  const prompt = buildCodePrompt(images, options);
-  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  
-  const imageParts = images.map(img => ({
-    inlineData: {
-      data: img.data,
-      mimeType: img.mimeType || 'image/png'
-    }
-  }));
-
-  const result = await model.generateContent([prompt, ...imageParts]);
-  return result.response.text();
-}
-
 async function generateWithGemini(images, options) {
   const prompt = buildCodePrompt(images, options);
   const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });

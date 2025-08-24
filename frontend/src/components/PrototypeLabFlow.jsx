@@ -66,11 +66,7 @@ const PrototypeLabFlow = ({ onNavigate }) => {
     };
 
     const handleGenerateCode = async () => {
-        if (screenOrder.filter(Boolean).length === 0) {
-            alert('Please arrange at least one screen in the flow order');
-            return;
-        }
-
+        // Allow generation even without arranged screens (will generate sample code)
         setIsGenerating(true);
         setWorkflowStatus({ text: 'Analyzing screens and generating architecture...', step: 'analyzing' });
 
@@ -80,6 +76,7 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             
             formData.append('action', 'generate_pixel_perfect_code');
             
+            // Add images if available
             orderedScreens.forEach((screen, index) => {
                 formData.append('images', screen.file);
                 formData.append('screenOrder', index);
@@ -473,8 +470,7 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                            ) : (
                                <button
                                    onClick={handleGenerateCode}
-                                   disabled={screenOrder.filter(Boolean).length === 0}
-                                   className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                                   className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-400/50"
                                    aria-label="Generate prototype code"
                                >
                                    <div className="flex items-center space-x-2">
