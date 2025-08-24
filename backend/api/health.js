@@ -2,7 +2,7 @@ import cors from 'cors';
 
 // CORS configuration
 const corsMiddleware = cors({
-  origin: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173',
+  origin: true, // Allow all origins for testing
   credentials: true
 });
 

@@ -4,42 +4,123 @@
   "installCommand": "npm install",
   "framework": "vite",
   "functions": {
-    "api/generate-code.js": {
+    "backend/api/unified-api.js": {
       "maxDuration": 60
     },
-    "api/projects.js": {
+    "backend/api/projects.js": {
       "maxDuration": 30
     },
-    "api/health.js": {
+    "backend/api/health.js": {
       "maxDuration": 10
     },
-    "api/test.js": {
+    "backend/api/enhanced-figma-integration.js": {
+      "maxDuration": 60
+    },
+    "backend/api/enhanced-code-generator.js": {
+      "maxDuration": 60
+    },
+    "backend/api/enhanced-live-preview.js": {
+      "maxDuration": 60
+    },
+    "backend/api/evaluator-agents.js": {
+      "maxDuration": 60
+    },
+    "backend/api/mcp-server.js": {
+      "maxDuration": 60
+    },
+    "backend/api/preview-config.js": {
+      "maxDuration": 30
+    },
+    "backend/api/status.js": {
       "maxDuration": 10
     },
-    "api/test-simple.js": {
-      "maxDuration": 10
+    "backend/api/enhanced-api.js": {
+      "maxDuration": 60
+    },
+    "backend/api/download-zip.js": {
+      "maxDuration": 30
     }
   },
   "rewrites": [
     {
       "source": "/api/health",
-      "destination": "/api/health.js"
+      "destination": "/backend/api/health.js"
     },
     {
       "source": "/api/generate-code",
-      "destination": "/api/generate-code.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/projects",
-      "destination": "/api/projects.js"
+      "destination": "/backend/api/projects.js"
     },
     {
-      "source": "/api/test",
-      "destination": "/api/test.js"
+      "source": "/api/import-figma",
+      "destination": "/backend/api/unified-api.js"
     },
     {
-      "source": "/api/test-simple",
-      "destination": "/api/test-simple.js"
+      "source": "/api/generate-native-code",
+      "destination": "/backend/api/unified-api.js"
+    },
+    {
+      "source": "/api/live-preview",
+      "destination": "/backend/api/unified-api.js"
+    },
+    {
+      "source": "/api/generate-mcp",
+      "destination": "/backend/api/unified-api.js"
+    },
+    {
+      "source": "/api/generate-android",
+      "destination": "/backend/api/unified-api.js"
+    },
+    {
+      "source": "/api/download-zip",
+      "destination": "/backend/api/download-zip.js"
+    },
+    {
+      "source": "/api/enhanced-api",
+      "destination": "/backend/api/enhanced-api.js"
+    },
+    {
+      "source": "/api/enhanced-figma-integration",
+      "destination": "/backend/api/enhanced-figma-integration.js"
+    },
+    {
+      "source": "/api/enhanced-code-generator",
+      "destination": "/backend/api/enhanced-code-generator.js"
+    },
+    {
+      "source": "/api/enhanced-live-preview",
+      "destination": "/backend/api/enhanced-live-preview.js"
+    },
+    {
+      "source": "/api/evaluator-agents",
+      "destination": "/backend/api/evaluator-agents.js"
+    },
+    {
+      "source": "/api/mcp-server",
+      "destination": "/backend/api/mcp-server.js"
+    },
+    {
+      "source": "/api/preview-config",
+      "destination": "/backend/api/preview-config.js"
+    },
+    {
+      "source": "/api/status",
+      "destination": "/backend/api/status.js"
+    },
+    {
+      "source": "/api/analyze-prompt",
+      "destination": "/backend/api/unified-api.js"
+    },
+    {
+      "source": "/api/generate-from-text",
+      "destination": "/backend/api/unified-api.js"
+    },
+    {
+      "source": "/api/github-export",
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/(.*)",
