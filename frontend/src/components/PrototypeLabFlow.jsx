@@ -108,12 +108,12 @@ export default App;`);
                     {/* Enhanced Configuration Cards with Better Visual Hierarchy */}
                     <div className="flex items-center space-x-4">
                         {/* Framework Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[180px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[200px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                             <div className="flex items-center space-x-2 mb-3">
                                 <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                                 <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Framework</h3>
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-3">
                                 {['React', 'Angular', 'Vue.js', 'Svelte'].map((option) => (
                                     <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus-within:bg-gray-700/50">
                                         <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
@@ -136,12 +136,12 @@ export default App;`);
                         </div>
 
                         {/* Styling Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[180px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[200px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                             <div className="flex items-center space-x-2 mb-3">
                                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                                 <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Styling</h3>
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-3">
                                 {['Tailwind CSS', 'CSS Modules', 'Styled Components', 'Material-UI'].map((option) => (
                                     <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus-within:bg-gray-700/50">
                                         <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
@@ -164,12 +164,12 @@ export default App;`);
                         </div>
 
                         {/* Architecture Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[180px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[200px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
                             <div className="flex items-center space-x-2 mb-3">
                                 <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
                                 <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Architecture</h3>
                             </div>
-                            <div className="space-y-2">
+                            <div className="grid grid-cols-2 gap-3">
                                 {['Component-Based', 'Atomic Design', 'Feature-Based', 'Domain-Driven'].map((option) => (
                                     <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus-within:bg-gray-700/50">
                                         <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
