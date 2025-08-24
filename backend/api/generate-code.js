@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Gemini AI model
-const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const gemini = new GoogleGenerativeAI("AIzaSyBcR6rMwP9v8e2cN56gdnkWMhJtOWyP_uU");
 
 // Configure multer for file uploads
 const upload = multer({
@@ -397,7 +397,7 @@ function extractFigmaFileKey(figmaUrl) {
 }
 
 async function getFigmaFileData(fileKey) {
-  const token = process.env.FIGMA_API_TOKEN;
+  const token = "figd_00LP2oP9Fqfd0PY0alm9L9tsjlC85pn8m5KEeXMn";
   const response = await fetch(`https://api.figma.com/v1/files/${fileKey}`, {
     headers: {
       'X-Figma-Token': token,
@@ -433,7 +433,7 @@ function extractFigmaFrames(document) {
 }
 
 async function getFigmaImageUrls(fileKey, frames) {
-  const token = process.env.FIGMA_API_TOKEN;
+  const token = "figd_00LP2oP9Fqfd0PY0alm9L9tsjlC85pn8m5KEeXMn";
   const frameIds = frames.map(frame => frame.id).join(',');
   
   const response = await fetch(

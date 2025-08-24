@@ -27,7 +27,7 @@ class PixelPerfectMCPServer {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    this.gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    this.gemini = new GoogleGenerativeAI("AIzaSyBcR6rMwP9v8e2cN56gdnkWMhJtOWyP_uU");
 
     this.setupTools();
   }

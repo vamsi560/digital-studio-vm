@@ -12,6 +12,9 @@
     },
     "api/health.js": {
       "maxDuration": 10
+    },
+    "api/test.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [
@@ -26,6 +29,10 @@
     {
       "source": "/api/projects",
       "destination": "/api/projects.js"
+    },
+    {
+      "source": "/api/test",
+      "destination": "/api/test.js"
     },
     {
       "source": "/(.*)",
