@@ -40,6 +40,49 @@ const IOSLabFlow = ({ onNavigate }) => {
         handleFileUpload(files);
     };
 
+    // Figma import function
+    const handleFigmaImport = async () => {
+        const figmaUrl = prompt('Please enter your Figma file URL:');
+        if (!figmaUrl) return;
+
+        setIsGenerating(true);
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/import-figma', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'import_figma',
+                    figmaUrl,
+                    platform: 'ios',
+                    framework: language,
+                    styling: 'SwiftUI',
+                    architecture
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                setGeneratedCode(data.mainCode || '// Generated code will appear here');
+                setCurrentScreen(2);
+            } else {
+                throw new Error(data.error || 'Import failed');
+            }
+
+        } catch (error) {
+            console.error('Error importing from Figma:', error);
+            alert(`Figma import failed: ${error.message}`);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const handleGenerateCode = async () => {
         setIsGenerating(true);
         try {
@@ -237,7 +280,10 @@ const IOSLabFlow = ({ onNavigate }) => {
                             <h3 className="text-lg font-bold text-gray-200">Import / Upload Screens</h3>
                         </div>
                         <div className="space-y-4">
-                            <button className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50">
+                            <button 
+                                onClick={handleFigmaImport}
+                                className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+                            >
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>

@@ -65,6 +65,58 @@ const AndroidLabFlow = ({ onNavigate }) => {
         setDraggedItem(null);
     };
 
+    // Figma import function
+    const handleFigmaImport = async () => {
+        const figmaUrl = prompt('Please enter your Figma file URL:');
+        if (!figmaUrl) return;
+
+        setIsGenerating(true);
+        setWorkflowStatus({ text: 'Importing from Figma...', step: 'importing' });
+
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/import-figma', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'import_figma',
+                    figmaUrl,
+                    platform: 'android',
+                    framework: language,
+                    styling: 'Material Design',
+                    architecture
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                setGeneratedProject(data);
+                setGeneratedCode(data.mainCode || '// Generated code will appear here');
+                setWorkflowStatus({ text: 'Figma import completed!', step: 'completed' });
+                
+                // Move to screen 2 after successful import
+                setTimeout(() => {
+                    setCurrentScreen(2);
+                }, 1000);
+            } else {
+                throw new Error(data.error || 'Import failed');
+            }
+
+        } catch (error) {
+            console.error('Error importing from Figma:', error);
+            setWorkflowStatus({ text: 'Error importing from Figma. Please try again.', step: 'error' });
+            alert(`Figma import failed: ${error.message}`);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const handleGenerateCode = async () => {
         if (screenOrder.filter(Boolean).length === 0) {
             alert('Please arrange at least one screen in the flow order');
@@ -302,7 +354,10 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             <h3 className="text-lg font-bold text-gray-200">Import / Upload Screens</h3>
                         </div>
                         <div className="space-y-4">
-                            <button className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50">
+                            <button 
+                                onClick={handleFigmaImport}
+                                className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+                            >
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>

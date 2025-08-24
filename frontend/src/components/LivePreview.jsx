@@ -34,13 +34,37 @@ const LivePreview = ({ code }) => {
                     }
                 }
 
-                // Extract JSX content from the component body
-                const jsxMatch = componentBody.match(/return\s*\(([\s\S]*?)\);/);
-                if (!jsxMatch) {
-                    throw new Error('Could not find JSX return statement');
+                // Extract JSX content from the component body - handle multiple formats
+                let jsxContent = '';
+                let jsxMatch = null;
+                
+                // Try different JSX return patterns
+                const jsxPatterns = [
+                    /return\s*\(([\s\S]*?)\);/,
+                    /return\s*([\s\S]*?);/,
+                    /return\s*([\s\S]*?)$/,
+                    /=>\s*\(([\s\S]*?)\)/,
+                    /=>\s*([\s\S]*?)$/
+                ];
+                
+                for (const pattern of jsxPatterns) {
+                    jsxMatch = componentBody.match(pattern);
+                    if (jsxMatch) {
+                        jsxContent = jsxMatch[1];
+                        break;
+                    }
                 }
-
-                const jsxContent = jsxMatch[1];
+                
+                if (!jsxContent) {
+                    // If no JSX found, try to extract any HTML-like content
+                    const htmlMatch = componentBody.match(/<[^>]*>[\s\S]*<\/[^>]*>/);
+                    if (htmlMatch) {
+                        jsxContent = htmlMatch[0];
+                    } else {
+                        // Create a fallback component
+                        jsxContent = '<div className="fallback-component"><h1>Generated Component</h1><p>Component content will appear here</p></div>';
+                    }
+                }
                 
                 // Create a safe HTML representation
                 const createSafeHTML = (jsx) => {
