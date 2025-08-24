@@ -78,15 +78,19 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             const formData = new FormData();
             const orderedScreens = screenOrder.filter(Boolean);
             
+            formData.append('action', 'generate_pixel_perfect_code');
+            
             orderedScreens.forEach((screen, index) => {
-                formData.append('screens', screen.file);
+                formData.append('images', screen.file);
                 formData.append('screenOrder', index);
             });
             
+            formData.append('platform', 'web');
             formData.append('framework', framework);
             formData.append('styling', styling);
             formData.append('architecture', architecture);
-            formData.append('projectName', 'prototype-project');
+            formData.append('customLogic', customLogic);
+            formData.append('routing', routing);
 
             setWorkflowStatus({ text: 'Generating React components and structure...', step: 'generating' });
 
@@ -309,151 +313,153 @@ const PrototypeLabFlow = ({ onNavigate }) => {
 
             {/* Enhanced Main Content Area */}
             <div className="flex h-[calc(100vh-88px)] max-w-7xl mx-auto">
-                {/* Enhanced Left Sidebar - Import/Upload Section */}
-                <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-full shadow-2xl backdrop-blur-sm">
+                {/* Enhanced Left Sidebar - Uploaded Screens */}
+                <div className="w-80 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-full shadow-2xl backdrop-blur-sm flex flex-col">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                            <h3 className="text-lg font-bold text-gray-200">Import / Upload Screens</h3>
+                            <h3 className="text-lg font-bold text-gray-200">Uploaded Screens</h3>
                         </div>
-                        <div className="space-y-4">
+                        
+                        {/* Upload Area */}
+                        <div className="mb-6">
+                            <label className={`flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-blue-400/50 ${
+                                isDragging
+                                    ? 'border-blue-400 bg-blue-400/10'
+                                    : 'border-gray-600 bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500'
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            >
+                                <div className="text-center">
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
+                                        isDragging
+                                            ? 'bg-blue-500 scale-110'
+                                            : 'bg-gradient-to-br from-blue-500 to-purple-500'
+                                    }`}>
+                                        <svg className={`w-5 h-5 text-white transition-all duration-300 ${isDragging ? 'animate-bounce' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                    </div>
+                                    <span className="text-gray-200 font-medium text-sm block mb-1">
+                                        {isDragging ? 'Drop files here' : 'Upload screens'}
+                                    </span>
+                                    <span className="text-gray-400 text-xs">Drag & drop or click</span>
+                                </div>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={(e) => handleFileUpload(e.target.files)}
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
+
+                        {/* Import Buttons */}
+                        <div className="space-y-3 mb-6">
                             <button className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50">
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>
                                 <span className="text-white font-medium text-sm">Import from Figma</span>
                             </button>
-                            
                             <button className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-gray-400/50">
-                                <svg className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                 </svg>
                                 <span className="text-gray-300 font-medium text-sm">Import from GitHub</span>
                             </button>
-                            
-                            <div className="mt-6">
-                                <label className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-blue-400/50 ${
-                                    isDragging 
-                                        ? 'border-blue-400 bg-blue-400/10' 
-                                        : 'border-gray-600 bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500'
-                                }`}
-                                onDragOver={handleDragOver}
-                                onDragLeave={handleDragLeave}
-                                onDrop={handleDrop}
-                                >
-                                    <div className="text-center">
-                                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 transition-all duration-300 ${
-                                            isDragging 
-                                                ? 'bg-blue-500 scale-110' 
-                                                : 'bg-gradient-to-br from-blue-500 to-purple-500'
-                                        }`}>
-                                            <svg className={`w-6 h-6 text-white transition-all duration-300 ${isDragging ? 'animate-bounce' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                            </svg>
-                                        </div>
-                                        <span className="text-gray-200 font-medium text-sm block mb-1">
-                                            {isDragging ? 'Drop files here' : 'Upload your screens'}
-                                        </span>
-                                        <span className="text-gray-400 text-xs">Drag & drop or click to browse</span>
-                                    </div>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={(e) => handleFileUpload(e.target.files)}
-                                        className="hidden"
-                                    />
-                                </label>
-                            </div>
                         </div>
+
+                        {/* Uploaded Screens List */}
+                        {uploadedScreens.length > 0 && (
+                            <div className="flex-1 overflow-y-auto">
+                                <h4 className="text-sm font-semibold text-gray-300 mb-3">Available Screens</h4>
+                                <div className="space-y-3">
+                                    {uploadedScreens.map((screen, index) => (
+                                        <div 
+                                            key={screen.id} 
+                                            className="group bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg p-3 border border-gray-600/30 cursor-grab hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                                            draggable
+                                            onDragStart={(e) => handleScreenDragStart(e, screen)}
+                                        >
+                                            <div className="flex items-center space-x-3">
+                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-gray-600 to-gray-500 flex-shrink-0">
+                                                    <img src={screen.url} alt={screen.name} className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h5 className="text-sm font-medium text-gray-200 truncate">Screen {index + 1}</h5>
+                                                    <p className="text-xs text-gray-400 truncate">{screen.name}</p>
+                                                </div>
+                                                <div className="w-2 h-2 bg-blue-400 rounded-full flex-shrink-0"></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Enhanced Main Area - Screen Order Display */}
                 <div className="flex-1 p-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-5xl mx-auto">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                            <h3 className="text-lg font-bold text-gray-200">Prototype Screen Flow Preview</h3>
+                            <h3 className="text-lg font-bold text-gray-200">Screen Flow Order</h3>
                         </div>
-                                           {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
-                       <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
-                           <div className="text-center">
-                               <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                   </svg>
-                               </div>
-                               <p className="text-gray-400 font-medium mb-1">Upload images to see prototype screen flow</p>
-                               <p className="text-gray-500 text-sm">Drag and drop your screens here</p>
-                           </div>
-                       </div>
-                   ) : (
-                       <div className="space-y-6">
-                           {/* Uploaded Screens Tray */}
-                           {uploadedScreens.length > 0 && (
-                               <div>
-                                   <h4 className="text-sm font-semibold text-gray-300 mb-3">Uploaded Screens</h4>
-                                   <div className="grid grid-cols-6 gap-3">
-                                       {uploadedScreens.map((screen, index) => (
-                                           <div 
-                                               key={screen.id} 
-                                               className="group aspect-square border-2 border-dotted border-gray-600/50 rounded-xl flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-grab"
-                                               draggable
-                                               onDragStart={(e) => handleScreenDragStart(e, screen)}
-                                           >
-                                               <img src={screen.url} alt={screen.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                                               <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                   {index + 1}
-                                               </div>
-                                           </div>
-                                       ))}
-                                   </div>
-                               </div>
-                           )}
-                           
-                           {/* Screen Order Flow */}
-                           <div>
-                               <h4 className="text-sm font-semibold text-gray-300 mb-3">Screen Flow Order</h4>
-                               <div className="grid grid-cols-4 gap-4">
-                                   {screenOrder.map((screen, index) => (
-                                       <div 
-                                           key={index}
-                                           className={`aspect-square border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-300 ${
-                                               screen 
-                                                   ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
-                                                   : 'border-gray-600/50 bg-gradient-to-br from-gray-800 to-gray-700'
-                                           }`}
-                                           onDragOver={(e) => e.preventDefault()}
-                                           onDrop={(e) => handleScreenDrop(e, index)}
-                                       >
-                                           {screen ? (
-                                               <div className="relative w-full h-full group">
-                                                   <img src={screen.url} alt={screen.name} className="w-full h-full object-cover rounded-lg" />
-                                                   <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                                                       {index + 1}
-                                                   </div>
-                                                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
-                                                       <button 
-                                                           onClick={() => handleAddLogic(index)}
-                                                           className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
-                                                       >
-                                                           Add Logic
-                                                       </button>
-                                                   </div>
-                                               </div>
-                                           ) : (
-                                               <div className="text-center">
-                                                   <span className="text-4xl text-gray-500 font-bold">{index + 1}</span>
-                                                   <p className="text-xs text-gray-400 mt-1">Drop screen here</p>
-                                               </div>
-                                           )}
-                                       </div>
-                                   ))}
-                               </div>
-                           </div>
-                       </div>
-                   )}
+                        {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
+                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                    </div>
+                                    <p className="text-gray-400 font-medium mb-1">Upload images to see prototype screen flow</p>
+                                    <p className="text-gray-500 text-sm">Drag screens from sidebar to arrange order</p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-4 gap-6">
+                                {screenOrder.map((screen, index) => (
+                                    <div 
+                                        key={index}
+                                        className={`aspect-[9/16] border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                            screen 
+                                                ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
+                                                : 'border-gray-600/50 bg-gradient-to-br from-gray-800 to-gray-700'
+                                        }`}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={(e) => handleScreenDrop(e, index)}
+                                    >
+                                        {screen ? (
+                                            <div className="relative w-full h-full group">
+                                                <img src={screen.url} alt={screen.name} className="w-full h-full object-cover rounded-lg" />
+                                                <div className="absolute top-3 left-3 bg-black/70 text-white text-sm px-2 py-1 rounded font-bold">
+                                                    {index + 1}
+                                                </div>
+                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+                                                    <button 
+                                                        onClick={() => handleAddLogic(index)}
+                                                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                                                    >
+                                                        Add Logic
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center">
+                                                <span className="text-6xl text-gray-500 font-bold">{index + 1}</span>
+                                                <p className="text-sm text-gray-400 mt-2">Drop screen here</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         
                                                {/* Enhanced Submit Button */}
                        <div className="absolute bottom-6 right-6">

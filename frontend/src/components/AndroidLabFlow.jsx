@@ -78,16 +78,18 @@ const AndroidLabFlow = ({ onNavigate }) => {
             const formData = new FormData();
             const orderedScreens = screenOrder.filter(Boolean);
             
+            formData.append('action', 'generate_pixel_perfect_code');
+            
             orderedScreens.forEach((screen, index) => {
-                formData.append('screens', screen.file);
+                formData.append('images', screen.file);
                 formData.append('screenOrder', index);
             });
             
-            formData.append('language', language);
-            formData.append('architecture', architecture);
-            formData.append('uiFramework', uiFramework);
-            formData.append('projectName', 'android-project');
             formData.append('platform', 'android');
+            formData.append('framework', language);
+            formData.append('architecture', architecture);
+            formData.append('customLogic', customLogic);
+            formData.append('routing', routing);
 
             setWorkflowStatus({ text: 'Generating Android components and structure...', step: 'generating' });
 
