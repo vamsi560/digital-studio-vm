@@ -2,24 +2,32 @@ import React, { useState, useCallback } from 'react';
 
 const PrototypeLabFlow = ({ onNavigate }) => {
     const [currentScreen, setCurrentScreen] = useState(1);
-    const [framework, setFramework] = useState('');
-    const [styling, setStyling] = useState('');
-    const [architecture, setArchitecture] = useState('');
+    const [framework, setFramework] = useState('React');
+    const [styling, setStyling] = useState('Tailwind CSS');
+    const [architecture, setArchitecture] = useState('Component-Based');
     const [uploadedScreens, setUploadedScreens] = useState([]);
+    const [screenOrder, setScreenOrder] = useState([]);
+    const [draggedItem, setDraggedItem] = useState(null);
     const [generatedCode, setGeneratedCode] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [showLogicPopup, setShowLogicPopup] = useState(false);
     const [customLogic, setCustomLogic] = useState('');
     const [routing, setRouting] = useState('');
     const [isDragging, setIsDragging] = useState(false);
+    const [generatedProject, setGeneratedProject] = useState(null);
+    const [selectedScreenIndex, setSelectedScreenIndex] = useState(0);
+    const [workflowStatus, setWorkflowStatus] = useState({});
 
     const handleFileUpload = useCallback((files) => {
         const newScreens = Array.from(files).map(file => ({
             id: Date.now() + Math.random(),
             name: file.name,
-            url: URL.createObjectURL(file)
+            url: URL.createObjectURL(file),
+            file: file
         }));
         setUploadedScreens(prev => [...prev, ...newScreens]);
+        // Initialize screen order with empty slots
+        setScreenOrder(prev => [...prev, ...new Array(newScreens.length).fill(null)]);
     }, []);
 
     const handleDragOver = (e) => {
@@ -39,40 +47,101 @@ const PrototypeLabFlow = ({ onNavigate }) => {
         handleFileUpload(files);
     };
 
+    // Screen order drag and drop functionality
+    const handleScreenDragStart = (e, screen) => {
+        setDraggedItem(screen);
+    };
+
+    const handleScreenDrop = (e, index) => {
+        e.preventDefault();
+        if (!draggedItem) return;
+        
+        const newScreenOrder = [...screenOrder];
+        newScreenOrder[index] = draggedItem;
+        setScreenOrder(newScreenOrder);
+        
+        // Remove from uploaded screens
+        setUploadedScreens(prev => prev.filter(screen => screen.id !== draggedItem.id));
+        setDraggedItem(null);
+    };
+
     const handleGenerateCode = async () => {
+        if (screenOrder.filter(Boolean).length === 0) {
+            alert('Please arrange at least one screen in the flow order');
+            return;
+        }
+
         setIsGenerating(true);
-        // Simulate code generation
-        setTimeout(() => {
-            setGeneratedCode(`// Generated React Code
-import React from 'react';
-import './App.css';
+        setWorkflowStatus({ text: 'Analyzing screens and generating architecture...', step: 'analyzing' });
 
-function App() {
-  return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Generated App</h1>
-      </header>
-      <main>
-        <p>Your app content will appear here</p>
-      </main>
-    </div>
-  );
-}
+        try {
+            const formData = new FormData();
+            const orderedScreens = screenOrder.filter(Boolean);
+            
+            orderedScreens.forEach((screen, index) => {
+                formData.append('screens', screen.file);
+                formData.append('screenOrder', index);
+            });
+            
+            formData.append('framework', framework);
+            formData.append('styling', styling);
+            formData.append('architecture', architecture);
+            formData.append('projectName', 'prototype-project');
 
-export default App;`);
+            setWorkflowStatus({ text: 'Generating React components and structure...', step: 'generating' });
+
+            const response = await fetch('/api/generate-code', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            setWorkflowStatus({ text: 'Finalizing project structure...', step: 'finalizing' });
+            
+            setGeneratedProject(data);
+            setGeneratedCode(data.mainCode || '// Generated code will appear here');
+            
+            setWorkflowStatus({ text: 'Code generation completed!', step: 'completed' });
+            
+            // Move to screen 2 after successful generation
+            setTimeout(() => {
+                setCurrentScreen(2);
+            }, 1000);
+
+        } catch (error) {
+            console.error('Error generating code:', error);
+            setWorkflowStatus({ text: 'Error generating code. Please try again.', step: 'error' });
+        } finally {
             setIsGenerating(false);
-        }, 3000);
+        }
     };
 
     const handleDownload = () => {
+        if (!generatedProject) return;
+        
         const element = document.createElement('a');
         const file = new Blob([generatedCode], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
-        element.download = 'generated-app.js';
+        element.download = 'prototype-project.js';
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+    };
+
+    const handleAddLogic = (screenIndex) => {
+        setSelectedScreenIndex(screenIndex);
+        setShowLogicPopup(true);
+    };
+
+    const handleSaveLogic = () => {
+        // Save logic for the selected screen
+        setShowLogicPopup(false);
+        setCustomLogic('');
     };
 
     const renderScreen1 = () => (
@@ -307,49 +376,110 @@ export default App;`);
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-gray-200">Prototype Screen Flow Preview</h3>
                         </div>
-                        {uploadedScreens.length === 0 ? (
-                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                        </svg>
-                                    </div>
-                                    <p className="text-gray-400 font-medium mb-1">Upload images to see prototype screen flow</p>
-                                    <p className="text-gray-500 text-sm">Drag and drop your screens here</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-4 gap-4">
-                                    {uploadedScreens.map((screen, index) => (
-                                        <div key={screen.id} className="group aspect-square border-2 border-dotted border-gray-600/50 rounded-xl flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                                            <img src={screen.url} alt={screen.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                                            <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                {index + 1}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                                           {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
+                       <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
+                           <div className="text-center">
+                               <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                   </svg>
+                               </div>
+                               <p className="text-gray-400 font-medium mb-1">Upload images to see prototype screen flow</p>
+                               <p className="text-gray-500 text-sm">Drag and drop your screens here</p>
+                           </div>
+                       </div>
+                   ) : (
+                       <div className="space-y-6">
+                           {/* Uploaded Screens Tray */}
+                           {uploadedScreens.length > 0 && (
+                               <div>
+                                   <h4 className="text-sm font-semibold text-gray-300 mb-3">Uploaded Screens</h4>
+                                   <div className="grid grid-cols-6 gap-3">
+                                       {uploadedScreens.map((screen, index) => (
+                                           <div 
+                                               key={screen.id} 
+                                               className="group aspect-square border-2 border-dotted border-gray-600/50 rounded-xl flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-grab"
+                                               draggable
+                                               onDragStart={(e) => handleScreenDragStart(e, screen)}
+                                           >
+                                               <img src={screen.url} alt={screen.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                               <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                   {index + 1}
+                                               </div>
+                                           </div>
+                                       ))}
+                                   </div>
+                               </div>
+                           )}
+                           
+                           {/* Screen Order Flow */}
+                           <div>
+                               <h4 className="text-sm font-semibold text-gray-300 mb-3">Screen Flow Order</h4>
+                               <div className="grid grid-cols-4 gap-4">
+                                   {screenOrder.map((screen, index) => (
+                                       <div 
+                                           key={index}
+                                           className={`aspect-square border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                               screen 
+                                                   ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
+                                                   : 'border-gray-600/50 bg-gradient-to-br from-gray-800 to-gray-700'
+                                           }`}
+                                           onDragOver={(e) => e.preventDefault()}
+                                           onDrop={(e) => handleScreenDrop(e, index)}
+                                       >
+                                           {screen ? (
+                                               <div className="relative w-full h-full group">
+                                                   <img src={screen.url} alt={screen.name} className="w-full h-full object-cover rounded-lg" />
+                                                   <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                                                       {index + 1}
+                                                   </div>
+                                                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+                                                       <button 
+                                                           onClick={() => handleAddLogic(index)}
+                                                           className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                                                       >
+                                                           Add Logic
+                                                       </button>
+                                                   </div>
+                                               </div>
+                                           ) : (
+                                               <div className="text-center">
+                                                   <span className="text-4xl text-gray-500 font-bold">{index + 1}</span>
+                                                   <p className="text-xs text-gray-400 mt-1">Drop screen here</p>
+                                               </div>
+                                           )}
+                                       </div>
+                                   ))}
+                               </div>
+                           </div>
+                       </div>
+                   )}
                         
-                        {/* Enhanced Submit Button */}
-                        <div className="absolute bottom-6 right-6">
-                            <button
-                                onClick={() => setCurrentScreen(2)}
-                                disabled={uploadedScreens.length === 0}
-                                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50"
-                                aria-label="Generate prototype code"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <span>Generate Prototype Code</span>
-                                    <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                    </svg>
-                                </div>
-                            </button>
-                        </div>
+                                               {/* Enhanced Submit Button */}
+                       <div className="absolute bottom-6 right-6">
+                           {isGenerating ? (
+                               <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-3 px-6 rounded-lg shadow-xl">
+                                   <div className="flex items-center space-x-2">
+                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                       <span>{workflowStatus.text || 'Generating...'}</span>
+                                   </div>
+                               </div>
+                           ) : (
+                               <button
+                                   onClick={handleGenerateCode}
+                                   disabled={screenOrder.filter(Boolean).length === 0}
+                                   className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                                   aria-label="Generate prototype code"
+                               >
+                                   <div className="flex items-center space-x-2">
+                                       <span>Generate Prototype Code</span>
+                                       <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                       </svg>
+                                   </div>
+                               </button>
+                           )}
+                       </div>
                     </div>
                 </div>
             </div>
@@ -414,57 +544,144 @@ export default App;`);
             {/* Main Content Area */}
             <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
-                    {/* Left Panel - Code Generation */}
+                    {/* Left Panel - Generated Project Structure */}
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-                        <h3 className="text-xl font-bold text-gray-200 mb-6">Code Generation Progress</h3>
-                        {isGenerating && (
+                        <h3 className="text-xl font-bold text-gray-200 mb-6">Generated Project Structure</h3>
+                        {generatedProject ? (
                             <div className="space-y-4">
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30">
-                                    <div className="w-4 h-4 bg-blue-400 rounded-full animate-pulse shadow-lg"></div>
-                                    <span className="text-gray-200 font-medium">Generating code for screen 1...</span>
+                                <div className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl p-4 border border-gray-600/30">
+                                    <h4 className="text-lg font-semibold text-gray-200 mb-3">📁 Project Files</h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex items-center space-x-2 text-gray-300">
+                                            <span className="text-blue-400">📄</span>
+                                            <span>package.json</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2 text-gray-300">
+                                            <span className="text-green-400">📄</span>
+                                            <span>src/App.jsx</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2 text-gray-300">
+                                            <span className="text-purple-400">📄</span>
+                                            <span>src/components/Screen1.jsx</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2 text-gray-300">
+                                            <span className="text-purple-400">📄</span>
+                                            <span>src/components/Screen2.jsx</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2 text-gray-300">
+                                            <span className="text-yellow-400">📄</span>
+                                            <span>src/styles/App.css</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2 text-gray-300">
+                                            <span className="text-orange-400">📄</span>
+                                            <span>README.md</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30">
-                                    <div className="w-4 h-4 bg-blue-400 rounded-full animate-pulse shadow-lg"></div>
-                                    <span className="text-gray-200 font-medium">Generating code for screen 2...</span>
+                                
+                                <div className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl p-4 border border-gray-600/30">
+                                    <h4 className="text-lg font-semibold text-gray-200 mb-3">⚙️ Configuration</h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Framework:</span>
+                                            <span className="text-gray-200">{framework}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Styling:</span>
+                                            <span className="text-gray-200">{styling}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Architecture:</span>
+                                            <span className="text-gray-200">{architecture}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-400">Screens:</span>
+                                            <span className="text-gray-200">{screenOrder.filter(Boolean).length}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30 opacity-50">
-                                    <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-400">Generating code for screen 3...</span>
-                                </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30 opacity-50">
-                                    <div className="w-4 h-4 bg-gray-600 rounded-full"></div>
-                                    <span className="text-gray-400">Generating code for screen 4...</span>
+
+                                <div className="flex space-x-3">
+                                    <button
+                                        onClick={handleDownload}
+                                        className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                    >
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                            <span>Download Project</span>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentScreen(3)}
+                                        className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                    >
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                            <span>Preview Screens</span>
+                                        </div>
+                                    </button>
                                 </div>
                             </div>
-                        )}
-                        {!isGenerating && (
-                            <button
-                                onClick={handleGenerateCode}
-                                className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-4 px-8 rounded-2xl transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <span>Generate Code</span>
-                                    <svg className="w-5 h-5 group-hover:transform group-hover:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        ) : (
+                            <div className="text-center py-12">
+                                <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                     </svg>
                                 </div>
-                            </button>
+                                <p className="text-gray-400 mb-4">No project generated yet</p>
+                                <button
+                                    onClick={() => setCurrentScreen(1)}
+                                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    Go Back to Setup
+                                </button>
+                            </div>
                         )}
                     </div>
 
-                    {/* Right Panel - Preview */}
+                    {/* Right Panel - Generated Code */}
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-                        <h3 className="text-xl font-bold text-gray-200 mb-6">Code Preview</h3>
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold text-gray-200">Generated Code</h3>
+                            <div className="flex space-x-2">
+                                <button className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300">
+                                    App.jsx
+                                </button>
+                                <button className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300">
+                                    Screen1.jsx
+                                </button>
+                                <button className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300">
+                                    App.css
+                                </button>
+                            </div>
+                        </div>
                         {generatedCode ? (
-                            <pre className="bg-gradient-to-br from-gray-700 to-gray-600 p-6 rounded-xl text-sm text-gray-200 overflow-auto max-h-96 border border-gray-600/30 shadow-inner">
-                                <code>{generatedCode}</code>
-                            </pre>
+                            <div className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30 shadow-inner overflow-hidden">
+                                <div className="bg-gray-800 px-4 py-2 border-b border-gray-600/30">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span className="text-gray-400 text-sm ml-2">App.jsx</span>
+                                    </div>
+                                </div>
+                                <pre className="p-6 text-sm text-gray-200 overflow-auto max-h-96">
+                                    <code>{generatedCode}</code>
+                                </pre>
+                            </div>
                         ) : (
                             <div className="text-gray-400 text-center py-12 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30">
                                 <svg className="w-12 h-12 text-gray-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
                                 </svg>
                                 <p className="text-lg">Generated code will appear here</p>
+                                <p className="text-sm text-gray-500 mt-2">Complete React codebase with components and styling</p>
                             </div>
                         )}
                     </div>
@@ -491,52 +708,67 @@ export default App;`);
     const renderScreen3 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
-            <div className="bg-gradient-to-br from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-8">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
+                <div className="flex items-center justify-between max-w-7xl mx-auto">
+                    <div className="flex items-center space-x-6">
                         <button 
                             onClick={() => onNavigate('landing')}
-                            className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30"
+                            className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-4 py-2.5 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30 focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                            aria-label="Go back to landing page"
                         >
                             <div className="flex items-center space-x-2">
                                 <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
                                 </svg>
-                                <span className="font-semibold">Back</span>
+                                <span className="font-medium text-sm">Back</span>
                             </div>
                         </button>
                         <div className="space-y-1">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Digital Studio</h2>
+                            <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Digital Studio</h1>
                         </div>
                     </div>
                     
-                    {/* Screen Navigation */}
-                    <div className="flex items-center space-x-4">
-                        <div className="flex space-x-3">
-                            <button 
+                    {/* Enhanced Screen Navigation */}
+                    <div className="flex items-center space-x-3">
+                        <div className="flex space-x-2">
+                            <button
                                 onClick={() => setCurrentScreen(1)}
-                                className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 transform hover:scale-110 ${
-                                    currentScreen === 1 
-                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20' 
+                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400/50 ${
+                                    currentScreen === 1
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20'
                                         : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
                                 }`}
+                                aria-label="Go to screen 1"
                             >
                                 1
                             </button>
-                            <button 
+                            <button
                                 onClick={() => setCurrentScreen(2)}
-                                className={`w-10 h-10 rounded-xl border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 transform hover:scale-110 ${
-                                    currentScreen === 2 
-                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20' 
+                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400/50 ${
+                                    currentScreen === 2
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20'
                                         : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
                                 }`}
+                                aria-label="Go to screen 2"
                             >
                                 2
                             </button>
+                            <button
+                                onClick={() => setCurrentScreen(3)}
+                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400/50 ${
+                                    currentScreen === 3
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20'
+                                        : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
+                                }`}
+                                aria-label="Go to screen 3"
+                            >
+                                3
+                            </button>
                         </div>
-                        <div className="w-10 h-10 bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl flex items-center justify-center shadow-lg border border-gray-600/30">
-                            <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                        <div className="w-8 h-8 bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg flex items-center justify-center shadow-lg border border-gray-600/30">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                             </svg>
                         </div>
                     </div>
@@ -544,34 +776,109 @@ export default App;`);
             </div>
 
             {/* Main Content Area */}
-            <div className="p-8">
+            <div className="p-6">
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        {/* Left Panel - Code Generation */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-                            <h3 className="text-xl font-bold text-gray-200 mb-6">Code Generation Complete</h3>
-                            <div className="space-y-4">
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-green-700 to-green-600 rounded-xl border border-green-600/30">
-                                    <div className="w-4 h-4 bg-green-400 rounded-full shadow-lg"></div>
-                                    <span className="text-gray-200 font-medium">Screen 1 completed</span>
-                                </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-green-700 to-green-600 rounded-xl border border-green-600/30">
-                                    <div className="w-4 h-4 bg-green-400 rounded-full shadow-lg"></div>
-                                    <span className="text-gray-200 font-medium">Screen 2 completed</span>
-                                </div>
-                                <div className="flex items-center space-x-4 p-4 bg-gradient-to-br from-green-700 to-green-600 rounded-xl border border-green-600/30">
-                                    <div className="w-4 h-4 bg-green-400 rounded-full shadow-lg"></div>
-                                    <span className="text-gray-200 font-medium">Screen 3 completed</span>
-                                </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Left Panel - Screen List */}
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
+                            <h3 className="text-lg font-bold text-gray-200 mb-4">Generated Screens</h3>
+                            <div className="space-y-3">
+                                {screenOrder.filter(Boolean).map((screen, index) => (
+                                    <div 
+                                        key={index}
+                                        className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg p-3 border border-gray-600/30 cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+                                        onClick={() => setSelectedScreenIndex(index)}
+                                    >
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gradient-to-br from-gray-600 to-gray-500">
+                                                <img src={screen.url} alt={screen.name} className="w-full h-full object-cover" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-sm font-semibold text-gray-200">Screen {index + 1}</h4>
+                                                <p className="text-xs text-gray-400">{screen.name}</p>
+                                            </div>
+                                            <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 
-                        {/* Right Panel - Preview */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
-                            <h3 className="text-xl font-bold text-gray-200 mb-6">Final Code Preview</h3>
-                            <pre className="bg-gradient-to-br from-gray-700 to-gray-600 p-6 rounded-xl text-sm text-gray-200 overflow-auto max-h-64 border border-gray-600/30 shadow-inner">
-                                <code>{generatedCode}</code>
-                            </pre>
+                        {/* Center Panel - Screen Preview */}
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
+                            <h3 className="text-lg font-bold text-gray-200 mb-4">Screen Preview</h3>
+                            {selectedScreenIndex !== null && screenOrder[selectedScreenIndex] ? (
+                                <div className="space-y-4">
+                                    <div className="aspect-[9/16] bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl overflow-hidden border border-gray-600/30">
+                                        <img 
+                                            src={screenOrder[selectedScreenIndex].url} 
+                                            alt={`Screen ${selectedScreenIndex + 1}`} 
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="text-center">
+                                        <h4 className="text-lg font-semibold text-gray-200">Screen {selectedScreenIndex + 1}</h4>
+                                        <p className="text-sm text-gray-400">{screenOrder[selectedScreenIndex].name}</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </div>
+                                    <p className="text-gray-400">Select a screen to preview</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Right Panel - Logic & Code */}
+                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
+                            <h3 className="text-lg font-bold text-gray-200 mb-4">Logic & Code</h3>
+                            {selectedScreenIndex !== null && screenOrder[selectedScreenIndex] ? (
+                                <div className="space-y-4">
+                                    <button
+                                        onClick={() => handleAddLogic(selectedScreenIndex)}
+                                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                    >
+                                        <div className="flex items-center justify-center space-x-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                            </svg>
+                                            <span>Add Logic</span>
+                                        </div>
+                                    </button>
+                                    
+                                    <div className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-lg p-4 border border-gray-600/30">
+                                        <h4 className="text-sm font-semibold text-gray-200 mb-2">Generated Component</h4>
+                                        <pre className="text-xs text-gray-300 overflow-auto max-h-32">
+                                            <code>{`// Screen${selectedScreenIndex + 1}.jsx
+import React from 'react';
+
+const Screen${selectedScreenIndex + 1} = () => {
+  return (
+    <div className="screen-${selectedScreenIndex + 1}">
+      {/* Your screen content */}
+    </div>
+  );
+};
+
+export default Screen${selectedScreenIndex + 1};`}</code>
+                                        </pre>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                        </svg>
+                                    </div>
+                                    <p className="text-gray-400">Select a screen to add logic</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -600,6 +907,7 @@ export default App;`);
         </div>
     );
 
+    // Logic Popup Modal
     const renderLogicPopup = () => (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
             <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 w-full max-w-md shadow-2xl backdrop-blur-sm">

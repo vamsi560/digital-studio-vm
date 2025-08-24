@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 
 const AndroidLabFlow = ({ onNavigate }) => {
     const [currentScreen, setCurrentScreen] = useState(1);
@@ -6,22 +6,29 @@ const AndroidLabFlow = ({ onNavigate }) => {
     const [architecture, setArchitecture] = useState('MVVM');
     const [uiFramework, setUiFramework] = useState('Jetpack Compose');
     const [uploadedScreens, setUploadedScreens] = useState([]);
+    const [screenOrder, setScreenOrder] = useState([]);
+    const [draggedItem, setDraggedItem] = useState(null);
     const [generatedCode, setGeneratedCode] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [showLogicPopup, setShowLogicPopup] = useState(false);
     const [customLogic, setCustomLogic] = useState('');
     const [routing, setRouting] = useState('');
     const [isDragging, setIsDragging] = useState(false);
+    const [generatedProject, setGeneratedProject] = useState(null);
+    const [selectedScreenIndex, setSelectedScreenIndex] = useState(0);
+    const [workflowStatus, setWorkflowStatus] = useState({});
 
-    const handleFileUpload = (files) => {
-        const newScreens = Array.from(files).map((file, index) => ({
-            id: Date.now() + index,
+    const handleFileUpload = useCallback((files) => {
+        const newScreens = Array.from(files).map(file => ({
+            id: Date.now() + Math.random(),
             name: file.name,
             url: URL.createObjectURL(file),
             file: file
         }));
         setUploadedScreens(prev => [...prev, ...newScreens]);
-    };
+        // Initialize screen order with empty slots
+        setScreenOrder(prev => [...prev, ...new Array(newScreens.length).fill(null)]);
+    }, []);
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -40,46 +47,102 @@ const AndroidLabFlow = ({ onNavigate }) => {
         handleFileUpload(files);
     };
 
+    // Screen order drag and drop functionality
+    const handleScreenDragStart = (e, screen) => {
+        setDraggedItem(screen);
+    };
+
+    const handleScreenDrop = (e, index) => {
+        e.preventDefault();
+        if (!draggedItem) return;
+        
+        const newScreenOrder = [...screenOrder];
+        newScreenOrder[index] = draggedItem;
+        setScreenOrder(newScreenOrder);
+        
+        // Remove from uploaded screens
+        setUploadedScreens(prev => prev.filter(screen => screen.id !== draggedItem.id));
+        setDraggedItem(null);
+    };
+
     const handleGenerateCode = async () => {
+        if (screenOrder.filter(Boolean).length === 0) {
+            alert('Please arrange at least one screen in the flow order');
+            return;
+        }
+
         setIsGenerating(true);
+        setWorkflowStatus({ text: 'Analyzing screens and generating Android architecture...', step: 'analyzing' });
+
         try {
             const formData = new FormData();
-            formData.append('action', 'generate_pixel_perfect_code');
-            uploadedScreens.forEach(screen => {
-                formData.append('images', screen.file);
+            const orderedScreens = screenOrder.filter(Boolean);
+            
+            orderedScreens.forEach((screen, index) => {
+                formData.append('screens', screen.file);
+                formData.append('screenOrder', index);
             });
-            formData.append('platform', 'android');
-            formData.append('framework', language);
+            
+            formData.append('language', language);
             formData.append('architecture', architecture);
             formData.append('uiFramework', uiFramework);
-            formData.append('customLogic', customLogic);
-            formData.append('routing', routing);
+            formData.append('projectName', 'android-project');
+            formData.append('platform', 'android');
+
+            setWorkflowStatus({ text: 'Generating Android components and structure...', step: 'generating' });
 
             const response = await fetch('/api/generate-code', {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
-            const result = await response.json();
-            if (result.success) {
-                setGeneratedCode(result.code);
-                setCurrentScreen(2);
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
             }
+
+            const data = await response.json();
+            
+            setWorkflowStatus({ text: 'Finalizing Android project structure...', step: 'finalizing' });
+            
+            setGeneratedProject(data);
+            setGeneratedCode(data.mainCode || '// Generated Android code will appear here');
+            
+            setWorkflowStatus({ text: 'Android code generation completed!', step: 'completed' });
+            
+            // Move to screen 2 after successful generation
+            setTimeout(() => {
+                setCurrentScreen(2);
+            }, 1000);
+
         } catch (error) {
-            console.error('Code generation failed:', error);
+            console.error('Error generating Android code:', error);
+            setWorkflowStatus({ text: 'Error generating Android code. Please try again.', step: 'error' });
         } finally {
             setIsGenerating(false);
         }
     };
 
     const handleDownload = () => {
+        if (!generatedProject) return;
+        
         const element = document.createElement('a');
         const file = new Blob([generatedCode], { type: 'text/plain' });
         element.href = URL.createObjectURL(file);
-        element.download = 'android-app.zip';
+        element.download = 'android-project.zip';
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+    };
+
+    const handleAddLogic = (screenIndex) => {
+        setSelectedScreenIndex(screenIndex);
+        setShowLogicPopup(true);
+    };
+
+    const handleSaveLogic = () => {
+        // Save logic for the selected screen
+        setShowLogicPopup(false);
+        setCustomLogic('');
     };
 
     const renderScreen1 = () => (
@@ -296,49 +359,110 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-gray-200">Android Screen Flow Preview</h3>
                         </div>
-                        {uploadedScreens.length === 0 ? (
-                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
-                                <div className="text-center">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                        </svg>
-                                    </div>
-                                    <p className="text-gray-400 font-medium mb-1">Upload images to see Android screen flow</p>
-                                    <p className="text-gray-500 text-sm">Drag and drop your screens here</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-4 gap-4">
-                                    {uploadedScreens.map((screen, index) => (
-                                        <div key={screen.id} className="group aspect-square border-2 border-dotted border-gray-600/50 rounded-xl flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                                            <img src={screen.url} alt={screen.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                                            <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                {index + 1}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
+                                           {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
+                       <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
+                           <div className="text-center">
+                               <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                   </svg>
+                               </div>
+                               <p className="text-gray-400 font-medium mb-1">Upload images to see Android screen flow</p>
+                               <p className="text-gray-500 text-sm">Drag and drop your screens here</p>
+                           </div>
+                       </div>
+                   ) : (
+                       <div className="space-y-6">
+                           {/* Uploaded Screens Tray */}
+                           {uploadedScreens.length > 0 && (
+                               <div>
+                                   <h4 className="text-sm font-semibold text-gray-300 mb-3">Uploaded Screens</h4>
+                                   <div className="grid grid-cols-6 gap-3">
+                                       {uploadedScreens.map((screen, index) => (
+                                           <div 
+                                               key={screen.id} 
+                                               className="group aspect-square border-2 border-dotted border-gray-600/50 rounded-xl flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-600 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 cursor-grab"
+                                               draggable
+                                               onDragStart={(e) => handleScreenDragStart(e, screen)}
+                                           >
+                                               <img src={screen.url} alt={screen.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                                               <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                   {index + 1}
+                                               </div>
+                                           </div>
+                                       ))}
+                                   </div>
+                               </div>
+                           )}
+                           
+                           {/* Screen Order Flow */}
+                           <div>
+                               <h4 className="text-sm font-semibold text-gray-300 mb-3">Android Screen Flow Order</h4>
+                               <div className="grid grid-cols-4 gap-4">
+                                   {screenOrder.map((screen, index) => (
+                                       <div 
+                                           key={index}
+                                           className={`aspect-square border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                               screen 
+                                                   ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
+                                                   : 'border-gray-600/50 bg-gradient-to-br from-gray-800 to-gray-700'
+                                           }`}
+                                           onDragOver={(e) => e.preventDefault()}
+                                           onDrop={(e) => handleScreenDrop(e, index)}
+                                       >
+                                           {screen ? (
+                                               <div className="relative w-full h-full group">
+                                                   <img src={screen.url} alt={screen.name} className="w-full h-full object-cover rounded-lg" />
+                                                   <div className="absolute top-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                                                       {index + 1}
+                                                   </div>
+                                                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+                                                       <button 
+                                                           onClick={() => handleAddLogic(index)}
+                                                           className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-xs font-medium transition-colors"
+                                                       >
+                                                           Add Logic
+                                                       </button>
+                                                   </div>
+                                               </div>
+                                           ) : (
+                                               <div className="text-center">
+                                                   <span className="text-4xl text-gray-500 font-bold">{index + 1}</span>
+                                                   <p className="text-xs text-gray-400 mt-1">Drop screen here</p>
+                                               </div>
+                                           )}
+                                       </div>
+                                   ))}
+                               </div>
+                           </div>
+                       </div>
+                   )}
                         
-                        {/* Enhanced Submit Button */}
-                        <div className="absolute bottom-6 right-6">
-                            <button
-                                onClick={() => setCurrentScreen(2)}
-                                disabled={uploadedScreens.length === 0}
-                                className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400/50"
-                                aria-label="Generate Android code"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <span>Generate Android Code</span>
-                                    <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                    </svg>
-                                </div>
-                            </button>
-                        </div>
+                                               {/* Enhanced Submit Button */}
+                       <div className="absolute bottom-6 right-6">
+                           {isGenerating ? (
+                               <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-xl">
+                                   <div className="flex items-center space-x-2">
+                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                       <span>{workflowStatus.text || 'Generating...'}</span>
+                                   </div>
+                               </div>
+                           ) : (
+                               <button
+                                   onClick={handleGenerateCode}
+                                   disabled={screenOrder.filter(Boolean).length === 0}
+                                   className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400/50"
+                                   aria-label="Generate Android code"
+                               >
+                                   <div className="flex items-center space-x-2">
+                                       <span>Generate Android Code</span>
+                                       <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                       </svg>
+                                   </div>
+                               </button>
+                           )}
+                       </div>
                     </div>
                 </div>
             </div>
