@@ -17,11 +17,11 @@ const TrafficLights = () => (
 );
 
 const ServiceCard = ({ title, svgPath, onClick, disabled = false }) => (
-    <div onClick={!disabled ? onClick : undefined} className={`bg-[#1F2937] border border-[#374151] rounded-lg p-6 md:p-8 flex flex-col items-center justify-center h-48 transition-all duration-300 ease-in-out ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-200 hover:-translate-y-1'}`}>
-        <svg className="w-12 h-12 mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div onClick={!disabled ? onClick : undefined} className={`bg-[#1F2937] border border-[#374151] rounded-lg p-4 md:p-6 flex flex-col items-center justify-center h-full transition-all duration-300 ease-in-out ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-200 hover:-translate-y-1'}`}>
+        <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={svgPath}></path>
         </svg>
-        <h3 className="font-semibold text-white text-lg md:text-xl">{title}</h3>
+        <h3 className="font-semibold text-white text-base md:text-lg">{title}</h3>
         {disabled && <span className="text-xs text-yellow-400 mt-2">Coming Soon</span>}
     </div>
 );
@@ -144,7 +144,7 @@ const LandingView = ({ onNavigate }) => (
                         </h1>
                         <section>
                             <h2 className="text-xl text-gray-400 mb-8">We do ui/ux design for</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 h-64">
                                 <ServiceCard title="Prototype Lab" svgPath="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" onClick={() => onNavigate('prototype')} />
                                 <ServiceCard title="App Lab" svgPath="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" onClick={() => onNavigate('app-lab-landing')} />
                                 <ServiceCard title="Integration Lab" svgPath="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9m-9 9a9 9 0 00-9-9" onClick={() => onNavigate('integration-lab')} />
