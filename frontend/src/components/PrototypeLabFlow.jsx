@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import LivePreview from './LivePreview';
 
 const PrototypeLabFlow = ({ onNavigate }) => {
     const [currentScreen, setCurrentScreen] = useState(1);
@@ -17,6 +18,20 @@ const PrototypeLabFlow = ({ onNavigate }) => {
     const [generatedProject, setGeneratedProject] = useState(null);
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(0);
     const [workflowStatus, setWorkflowStatus] = useState({});
+    
+    // New state for image expansion and session management
+    const [expandedImage, setExpandedImage] = useState(null);
+    const [sessionData, setSessionData] = useState({
+        uploadedScreens: [],
+        screenOrder: [],
+        framework: 'React',
+        styling: 'Tailwind CSS',
+        architecture: 'Component-Based',
+        customLogic: '',
+        routing: '',
+        generatedCode: '',
+        generatedProject: null
+    });
 
     const handleFileUpload = useCallback((files) => {
         const newScreens = Array.from(files).map(file => ({
@@ -144,6 +159,61 @@ const PrototypeLabFlow = ({ onNavigate }) => {
         setShowLogicPopup(false);
         setCustomLogic('');
     };
+
+    // Session management functions
+    const saveSessionData = () => {
+        const sessionDataToSave = {
+            uploadedScreens,
+            screenOrder,
+            framework,
+            styling,
+            architecture,
+            customLogic,
+            routing,
+            generatedCode,
+            generatedProject
+        };
+        setSessionData(sessionDataToSave);
+        localStorage.setItem('prototypeLabSession', JSON.stringify(sessionDataToSave));
+    };
+
+    const loadSessionData = () => {
+        const savedSession = localStorage.getItem('prototypeLabSession');
+        if (savedSession) {
+            const parsedSession = JSON.parse(savedSession);
+            setSessionData(parsedSession);
+            setUploadedScreens(parsedSession.uploadedScreens || []);
+            setScreenOrder(parsedSession.screenOrder || []);
+            setFramework(parsedSession.framework || 'React');
+            setStyling(parsedSession.styling || 'Tailwind CSS');
+            setArchitecture(parsedSession.architecture || 'Component-Based');
+            setCustomLogic(parsedSession.customLogic || '');
+            setRouting(parsedSession.routing || '');
+            setGeneratedCode(parsedSession.generatedCode || '');
+            setGeneratedProject(parsedSession.generatedProject || null);
+        }
+    };
+
+    // Image expansion functions
+    const handleImageClick = (image) => {
+        setExpandedImage(image);
+    };
+
+    const handleCloseExpandedImage = () => {
+        setExpandedImage(null);
+    };
+
+    // Load session data on component mount
+    useEffect(() => {
+        loadSessionData();
+    }, []);
+
+    // Save session data when important data changes
+    useEffect(() => {
+        saveSessionData();
+    }, [uploadedScreens, screenOrder, framework, styling, architecture, customLogic, routing, generatedCode, generatedProject]);
+
+
 
     const renderScreen1 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300 relative overflow-hidden">
@@ -420,37 +490,44 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-4 gap-6">
+                            <div className="grid grid-cols-6 gap-4">
                                 {screenOrder.map((screen, index) => (
                                     <div 
                                         key={index}
-                                        className={`aspect-[9/16] border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                        className={`aspect-[9/16] border-2 border-dashed rounded-lg flex items-center justify-center transition-all duration-300 ${
                                             screen 
-                                                ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
+                                                ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg cursor-pointer hover:shadow-xl transform hover:scale-105' 
                                                 : 'border-gray-600/50 bg-gradient-to-br from-gray-800 to-gray-700'
                                         }`}
                                         onDragOver={(e) => e.preventDefault()}
                                         onDrop={(e) => handleScreenDrop(e, index)}
+                                        onClick={screen ? () => handleImageClick(screen) : undefined}
                                     >
                                         {screen ? (
                                             <div className="relative w-full h-full group">
                                                 <img src={screen.url} alt={screen.name} className="w-full h-full object-cover rounded-lg" />
-                                                <div className="absolute top-3 left-3 bg-black/70 text-white text-sm px-2 py-1 rounded font-bold">
+                                                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded font-bold">
                                                     {index + 1}
                                                 </div>
                                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
-                                                    <button 
-                                                        onClick={() => handleAddLogic(index)}
-                                                        className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                                                    >
-                                                        Add Logic
-                                                    </button>
+                                                    <div className="text-center">
+                                                        <div className="text-white text-xs font-medium mb-1">Click to expand</div>
+                                                        <button 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleAddLogic(index);
+                                                            }}
+                                                            className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                                                        >
+                                                            Add Logic
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ) : (
                                             <div className="text-center">
-                                                <span className="text-6xl text-gray-500 font-bold">{index + 1}</span>
-                                                <p className="text-sm text-gray-400 mt-2">Drop screen here</p>
+                                                <span className="text-3xl text-gray-500 font-bold">{index + 1}</span>
+                                                <p className="text-xs text-gray-400 mt-1">Drop screen here</p>
                                             </div>
                                         )}
                                     </div>
@@ -496,13 +573,24 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                     <div className="flex items-center space-x-8">
                         <button 
                             onClick={() => onNavigate('landing')}
-                            className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-6 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30"
+                            className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30"
                         >
                             <div className="flex items-center space-x-2">
                                 <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
                                 </svg>
-                                <span className="font-semibold">Back</span>
+                                <span className="font-medium text-sm">Home</span>
+                            </div>
+                        </button>
+                        <button 
+                            onClick={() => setCurrentScreen(1)}
+                            className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-blue-500/30"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                <span className="font-medium text-sm">Back to Setup</span>
                             </div>
                         </button>
                         <div className="space-y-1">
@@ -722,7 +810,19 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                                 <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
                                 </svg>
-                                <span className="font-medium text-sm">Back</span>
+                                <span className="font-medium text-sm">Home</span>
+                            </div>
+                        </button>
+                        <button 
+                            onClick={() => setCurrentScreen(2)}
+                            className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-400/50"
+                            aria-label="Go back to results"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                <span className="font-medium text-sm">Back to Results</span>
                             </div>
                         </button>
                         <div className="space-y-1">
@@ -806,21 +906,27 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                             </div>
                         </div>
 
-                        {/* Center Panel - Screen Preview */}
+                        {/* Center Panel - Live Preview */}
                         <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
-                            <h3 className="text-lg font-bold text-gray-200 mb-4">Screen Preview</h3>
-                            {selectedScreenIndex !== null && screenOrder[selectedScreenIndex] ? (
+                            <h3 className="text-lg font-bold text-gray-200 mb-4">Live Preview</h3>
+                            {generatedCode ? (
                                 <div className="space-y-4">
-                                    <div className="aspect-[9/16] bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl overflow-hidden border border-gray-600/30">
-                                        <img 
-                                            src={screenOrder[selectedScreenIndex].url} 
-                                            alt={`Screen ${selectedScreenIndex + 1}`} 
-                                            className="w-full h-full object-cover"
-                                        />
+                                    <div className="bg-white rounded-xl border border-gray-600/30 shadow-inner overflow-hidden">
+                                        <div className="bg-gray-100 px-4 py-2 border-b border-gray-300">
+                                            <div className="flex items-center space-x-2">
+                                                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                                <span className="text-gray-600 text-sm ml-2">Live Preview</span>
+                                            </div>
+                                        </div>
+                                        <div className="p-4 min-h-[400px] bg-white">
+                                            <LivePreview code={generatedCode} />
+                                        </div>
                                     </div>
                                     <div className="text-center">
-                                        <h4 className="text-lg font-semibold text-gray-200">Screen {selectedScreenIndex + 1}</h4>
-                                        <p className="text-sm text-gray-400">{screenOrder[selectedScreenIndex].name}</p>
+                                        <h4 className="text-lg font-semibold text-gray-200">Live Component Preview</h4>
+                                        <p className="text-sm text-gray-400">See how your generated React component looks and behaves</p>
                                     </div>
                                 </div>
                             ) : (
@@ -831,7 +937,8 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
                                     </div>
-                                    <p className="text-gray-400">Select a screen to preview</p>
+                                    <p className="text-gray-400">No preview available</p>
+                                    <p className="text-sm text-gray-500 mt-2">Generate code first to see the live preview</p>
                                 </div>
                             )}
                         </div>
@@ -955,6 +1062,34 @@ export default Screen${selectedScreenIndex + 1};`}</code>
         </div>
     );
 
+    // Expanded Image Modal
+    const renderExpandedImageModal = () => (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="relative max-w-4xl max-h-[90vh] mx-4">
+                <button
+                    onClick={handleCloseExpandedImage}
+                    className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all duration-300 transform hover:scale-110"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
+                    <div className="text-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-200">{expandedImage?.name}</h3>
+                    </div>
+                    <div className="flex justify-center">
+                        <img 
+                            src={expandedImage?.url} 
+                            alt={expandedImage?.name} 
+                            className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     return (
         <div className="relative">
             {/* Render Current Screen */}
@@ -964,6 +1099,9 @@ export default Screen${selectedScreenIndex + 1};`}</code>
 
             {/* Logic Popup */}
             {showLogicPopup && renderLogicPopup()}
+
+            {/* Expanded Image Modal */}
+            {expandedImage && renderExpandedImageModal()}
         </div>
     );
 };
