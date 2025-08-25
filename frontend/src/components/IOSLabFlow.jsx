@@ -16,6 +16,11 @@ const IOSLabFlow = ({ onNavigate }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [showFigmaModal, setShowFigmaModal] = useState(false);
     const [showGitHubModal, setShowGitHubModal] = useState(false);
+    
+    // GitHub integration state
+    const [isGitHubConnected, setIsGitHubConnected] = useState(false);
+    const [githubUser, setGithubUser] = useState(null);
+    const [generatedRepoUrl, setGeneratedRepoUrl] = useState('');
 
     const handleFileUpload = (files) => {
         const newScreens = Array.from(files).map((file, index) => ({
@@ -167,6 +172,81 @@ const IOSLabFlow = ({ onNavigate }) => {
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+    };
+
+    // GitHub connection functions
+    const handleGitHubConnect = () => {
+        const clientId = 'your_github_client_id'; // Replace with actual GitHub OAuth client ID
+        const redirectUri = encodeURIComponent(window.location.origin + '/prototype');
+        const scope = 'repo';
+        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+        window.location.href = githubAuthUrl;
+    };
+
+    const handleGitHubCallback = async (code) => {
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'github_oauth_callback',
+                    code: code
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                setIsGitHubConnected(true);
+                setGithubUser(data.user);
+            } else {
+                throw new Error(data.error || 'GitHub connection failed');
+            }
+        } catch (error) {
+            console.error('Error connecting to GitHub:', error);
+        }
+    };
+
+    const handlePushToGitHub = async () => {
+        if (!isGitHubConnected || !generatedCode) return;
+
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'github_create_repo',
+                    projectData: { mainCode: generatedCode },
+                    projectName: 'ios-project',
+                    framework: language,
+                    platform: 'ios'
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.success) {
+                setGeneratedRepoUrl(data.repoUrl);
+                alert(`Project successfully pushed to GitHub: ${data.repoUrl}`);
+            } else {
+                throw new Error(data.error || 'Failed to push to GitHub');
+            }
+        } catch (error) {
+            console.error('Error pushing to GitHub:', error);
+            alert('Error pushing to GitHub. Please try again.');
+        }
     };
 
     const renderScreen1 = () => (
@@ -417,6 +497,28 @@ const IOSLabFlow = ({ onNavigate }) => {
                         )}
                         
                         {/* Enhanced Submit Button */}
+                        {/* GitHub Connection Status */}
+                        <div className="absolute bottom-6 left-6">
+                            {!isGitHubConnected ? (
+                                <button
+                                    onClick={handleGitHubConnect}
+                                    className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
+                                >
+                                    <svg className="w-3 h-3 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                    </svg>
+                                    <span className="text-sm">Connect GitHub</span>
+                                </button>
+                            ) : (
+                                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                    </svg>
+                                    <span className="text-sm">✓ Connected</span>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="absolute bottom-6 right-6">
                             <button
                                 onClick={() => setCurrentScreen(2)}
