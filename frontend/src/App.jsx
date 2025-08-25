@@ -130,21 +130,21 @@ const LandingView = ({ onNavigate }) => (
         <div className="flex-grow flex items-center justify-center overflow-y-auto">
             <div className="w-full max-w-4xl mx-auto text-center px-4">
                 {/* Mac-style container */}
-                <div className="bg-[#1F2937] border border-[#374151] rounded-lg shadow-2xl p-8 max-w-4xl mx-auto">
-                    <header className="mb-12 md:mb-16">
-                        <div className="inline-flex items-center space-x-3 mb-2">
-                            <div className="border border-gray-600 p-2 rounded-lg"><span className="font-bold text-3xl text-white">VM</span></div>
-                            <span className="text-3xl font-bold text-green-500">Digital Studio</span>
+                <div className="bg-[#1F2937] border border-[#374151] rounded-lg shadow-2xl p-4 max-w-2xl mx-auto">
+                    <header className="mb-6">
+                        <div className="inline-flex items-center space-x-2 mb-1">
+                            <div className="border border-gray-600 p-1 rounded-md"><span className="font-bold text-lg text-white">VM</span></div>
+                            <span className="text-lg font-bold text-green-500">Digital Studio</span>
                         </div>
                     </header>
                     <main>
-                        <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-12 md:mb-16">
+                        <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-6">
                             <span className="text-white">Introducing </span>
                             <span className="bg-gradient-to-r from-green-400 to-emerald-600 text-transparent bg-clip-text">Digital Studio VM</span>
                         </h1>
                         <section>
-                            <h2 className="text-xl text-gray-400 mb-8">We do ui/ux design for</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 h-40">
+                            <h2 className="text-sm text-gray-400 mb-4">We do ui/ux design for</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 h-24">
                                 <ServiceCard title="Prototype Lab" svgPath="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" onClick={() => onNavigate('prototype')} />
                                 <ServiceCard title="App Lab" svgPath="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" onClick={() => onNavigate('app-lab-landing')} />
                                 <ServiceCard title="Integration Lab" svgPath="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9m-9 9a9 9 0 00-9-9" onClick={() => onNavigate('integration-lab')} />

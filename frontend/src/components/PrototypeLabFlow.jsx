@@ -693,8 +693,8 @@ Generated on: ${new Date().toISOString()}
             {/* Enhanced Main Content Area */}
             <div className="flex h-[calc(100vh-64px)] w-full px-3">
                 {/* Enhanced Left Sidebar - Uploaded Screens */}
-                <div className="w-48 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-2">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-md p-2 h-full shadow-2xl backdrop-blur-sm flex flex-col">
+                <div className="w-56 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-2">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-md p-2 h-80 shadow-2xl backdrop-blur-sm flex flex-col">
                         <div className="flex items-center space-x-1.5 mb-3">
                             <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
                             <h3 className="text-xs font-bold text-gray-200">Uploaded Screens</h3>
@@ -790,7 +790,7 @@ Generated on: ${new Date().toISOString()}
 
                 {/* Enhanced Main Area - Screen Order Display */}
                 <div className="flex-1 p-2">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-md p-2 h-[calc(100vh-100px)] shadow-2xl backdrop-blur-sm relative w-full max-w-4xl mx-auto">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-md p-2 h-80 shadow-2xl backdrop-blur-sm relative w-full max-w-2xl mx-auto">
                         <div className="flex items-center space-x-1.5 mb-3">
                             <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
                             <h3 className="text-xs font-bold text-gray-200">Screen Flow Order</h3>
