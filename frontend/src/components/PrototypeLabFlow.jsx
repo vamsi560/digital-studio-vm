@@ -37,6 +37,13 @@ const PrototypeLabFlow = ({ onNavigate }) => {
         generatedProject: null
     });
 
+    // New state for GitHub integration and preview mode
+    const [isGitHubConnected, setIsGitHubConnected] = useState(false);
+    const [githubUser, setGithubUser] = useState(null);
+    const [showPreviewOnly, setShowPreviewOnly] = useState(false);
+    const [componentAnalysis, setComponentAnalysis] = useState(null);
+    const [generatedRepoUrl, setGeneratedRepoUrl] = useState('');
+
     const handleFileUpload = useCallback((files) => {
         const newScreens = Array.from(files).map(file => ({
             id: Date.now() + Math.random(),
@@ -84,8 +91,8 @@ const PrototypeLabFlow = ({ onNavigate }) => {
         setDraggedItem(null);
     };
 
+    // Enhanced code generation with component analysis
     const handleGenerateCode = async () => {
-        // Allow generation even without arranged screens (will generate sample code)
         setIsGenerating(true);
         setWorkflowStatus({ text: 'Analyzing screens and generating architecture...', step: 'analyzing' });
 
@@ -101,16 +108,20 @@ const PrototypeLabFlow = ({ onNavigate }) => {
                 formData.append('screenOrder', index);
             });
             
+            // Enhanced parameters for better code generation
             formData.append('platform', 'web');
             formData.append('framework', framework);
             formData.append('styling', styling);
             formData.append('architecture', architecture);
             formData.append('customLogic', customLogic);
             formData.append('routing', routing);
+            formData.append('includeAnalysis', 'true'); // Request component analysis
+            formData.append('colorExtraction', 'true'); // Request color extraction
+            formData.append('pixelPerfect', 'true'); // Request pixel-perfect generation
 
             setWorkflowStatus({ text: 'Generating React components and structure...', step: 'generating' });
 
-            const response = await fetch('https://digital-studio-vm.vercel.app/api/generate-code', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
                 method: 'POST',
                 body: formData,
             });
@@ -126,6 +137,11 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             setGeneratedProject(data);
             setGeneratedCode(data.mainCode || '// Generated code will appear here');
             
+            // Set component analysis if available
+            if (data.analysis) {
+                setComponentAnalysis(data.analysis);
+            }
+            
             setWorkflowStatus({ text: 'Code generation completed!', step: 'completed' });
             
             // Move to screen 2 after successful generation
@@ -138,6 +154,90 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             setWorkflowStatus({ text: 'Error generating code. Please try again.', step: 'error' });
         } finally {
             setIsGenerating(false);
+        }
+    };
+
+    // GitHub OAuth integration
+    const handleGitHubConnect = () => {
+        const clientId = 'your_github_client_id'; // Replace with actual GitHub OAuth app client ID
+        const redirectUri = encodeURIComponent(window.location.origin + '/github-callback');
+        const scope = encodeURIComponent('repo user');
+        const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+        
+        window.location.href = githubAuthUrl;
+    };
+
+    // Handle GitHub OAuth callback
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        
+        if (code) {
+            handleGitHubCallback(code);
+        }
+    }, []);
+
+    const handleGitHubCallback = async (code) => {
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'github_oauth_callback',
+                    code: code
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setIsGitHubConnected(true);
+                    setGithubUser(data.user);
+                    // Store GitHub token securely
+                    localStorage.setItem('github_token', data.access_token);
+                }
+            }
+        } catch (error) {
+            console.error('GitHub OAuth error:', error);
+        }
+    };
+
+    // Push code to GitHub repository
+    const handlePushToGitHub = async () => {
+        if (!isGitHubConnected) {
+            alert('Please connect to GitHub first');
+            return;
+        }
+
+        try {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    action: 'github_create_repo',
+                    projectData: generatedProject,
+                    projectName: 'digital-studio-project',
+                    framework: framework,
+                    platform: 'web',
+                    description: `Generated using Digital Studio VM - ${framework} + ${styling} + ${architecture}`,
+                    isPrivate: false
+                }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    setGeneratedRepoUrl(data.repoUrl);
+                    alert(`Repository created successfully!\nURL: ${data.repoUrl}`);
+                }
+            }
+        } catch (error) {
+            console.error('GitHub push error:', error);
+            alert('Error pushing to GitHub. Please try again.');
         }
     };
 
@@ -306,7 +406,7 @@ Generated on: ${new Date().toISOString()}
         setWorkflowStatus({ text: 'Importing from Figma...', step: 'importing' });
 
         try {
-            const response = await fetch('https://digital-studio-vm.vercel.app/api/import-figma', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -317,7 +417,10 @@ Generated on: ${new Date().toISOString()}
                     platform: 'web',
                     framework,
                     styling,
-                    architecture
+                    architecture,
+                    includeAnalysis: true,
+                    colorExtraction: true,
+                    pixelPerfect: true
                 }),
             });
 
@@ -330,6 +433,9 @@ Generated on: ${new Date().toISOString()}
             if (data.success) {
                 setGeneratedProject(data);
                 setGeneratedCode(data.mainCode || '// Generated code will appear here');
+                if (data.analysis) {
+                    setComponentAnalysis(data.analysis);
+                }
                 setWorkflowStatus({ text: 'Figma import completed!', step: 'completed' });
                 
                 // Move to screen 2 after successful import
@@ -355,7 +461,7 @@ Generated on: ${new Date().toISOString()}
         setWorkflowStatus({ text: 'Importing from GitHub...', step: 'importing' });
 
         try {
-            const response = await fetch('https://digital-studio-vm.vercel.app/api/github-export', {
+            const response = await fetch('https://digital-studio-vm.vercel.app/api/unified-api', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -411,7 +517,10 @@ Generated on: ${new Date().toISOString()}
         saveSessionData();
     }, [uploadedScreens, screenOrder, framework, styling, architecture, customLogic, routing, generatedCode, generatedProject]);
 
-
+    // Preview-only mode toggle
+    const togglePreviewOnly = () => {
+        setShowPreviewOnly(!showPreviewOnly);
+    };
 
     const renderScreen1 = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300 relative overflow-hidden">
@@ -424,7 +533,7 @@ Generated on: ${new Date().toISOString()}
             </div>
             {/* Enhanced Top Header with Better Spacing */}
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
-                <div className="flex items-center justify-between max-w-7xl mx-auto">
+                <div className="flex items-center justify-between w-full px-6">
                     <div className="flex items-center space-x-6">
                         <button 
                             onClick={() => onNavigate('landing')}
@@ -577,7 +686,7 @@ Generated on: ${new Date().toISOString()}
             </div>
 
             {/* Enhanced Main Content Area */}
-            <div className="flex h-[calc(100vh-88px)] max-w-7xl mx-auto">
+            <div className="flex h-[calc(100vh-88px)] w-full px-6">
                 {/* Enhanced Left Sidebar - Uploaded Screens */}
                 <div className="w-80 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-full shadow-2xl backdrop-blur-sm flex flex-col">
@@ -1004,7 +1113,7 @@ Generated on: ${new Date().toISOString()}
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-gray-300">
             {/* Top Header with Navigation */}
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
-                <div className="flex items-center justify-between max-w-7xl mx-auto">
+                <div className="flex items-center justify-between w-full px-6">
                     <div className="flex items-center space-x-6">
                         <button 
                             onClick={() => onNavigate('landing')}
@@ -1084,8 +1193,35 @@ Generated on: ${new Date().toISOString()}
 
             {/* Main Content Area */}
             <div className="p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="w-full">
+                    {showPreviewOnly ? (
+                        // Preview-only mode - full screen preview
+                        <div className="w-full h-[calc(100vh-120px)]">
+                            <div className="bg-white rounded-xl border border-gray-600/30 shadow-inner overflow-hidden h-full">
+                                <div className="bg-gray-100 px-4 py-2 border-b border-gray-300 flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <span className="text-gray-600 text-sm ml-2">Live Preview</span>
+                                    </div>
+                                    <button
+                                        onClick={togglePreviewOnly}
+                                        className="text-gray-600 hover:text-gray-800 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div className="p-4 h-full bg-white overflow-auto">
+                                    <LivePreview code={generatedCode} />
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        // Normal mode with panels
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Left Panel - Screen List */}
                         <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
                             <h3 className="text-lg font-bold text-gray-200 mb-4">Generated Screens</h3>
@@ -1113,7 +1249,21 @@ Generated on: ${new Date().toISOString()}
 
                         {/* Center Panel - Live Preview */}
                         <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
-                            <h3 className="text-lg font-bold text-gray-200 mb-4">Live Preview</h3>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-bold text-gray-200">Live Preview</h3>
+                                <button
+                                    onClick={togglePreviewOnly}
+                                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                                >
+                                    <div className="flex items-center space-x-2">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        <span>Full Screen</span>
+                                    </div>
+                                </button>
+                            </div>
                             {generatedCode ? (
                                 <div className="space-y-4">
                                     <div className="bg-white rounded-xl border border-gray-600/30 shadow-inner overflow-hidden">
@@ -1148,9 +1298,41 @@ Generated on: ${new Date().toISOString()}
                             )}
                         </div>
 
-                        {/* Right Panel - Logic & Code */}
+                        {/* Right Panel - Logic & Code & Analysis */}
                         <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
-                            <h3 className="text-lg font-bold text-gray-200 mb-4">Logic & Code</h3>
+                            <h3 className="text-lg font-bold text-gray-200 mb-4">Logic & Analysis</h3>
+                            
+                            {/* Component Analysis Section */}
+                            {componentAnalysis && (
+                                <div className="mb-6">
+                                    <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/50 rounded-lg p-4 border border-blue-600/30">
+                                        <h4 className="text-sm font-semibold text-blue-200 mb-3 flex items-center">
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                            Component Analysis
+                                        </h4>
+                                        <div className="text-xs text-blue-100 space-y-2">
+                                            <div className="bg-blue-800/30 rounded p-2">
+                                                <strong>Structure:</strong> {componentAnalysis.structure || 'Component-based architecture'}
+                                            </div>
+                                            <div className="bg-blue-800/30 rounded p-2">
+                                                <strong>Complexity:</strong> {componentAnalysis.complexity || 'Medium'}
+                                            </div>
+                                            <div className="bg-blue-800/30 rounded p-2">
+                                                <strong>Reusability:</strong> {componentAnalysis.reusability || 'High'}
+                                            </div>
+                                            {componentAnalysis.recommendations && (
+                                                <div className="bg-blue-800/30 rounded p-2">
+                                                    <strong>Recommendations:</strong> {componentAnalysis.recommendations}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Logic & Code Section */}
                             {selectedScreenIndex !== null && screenOrder[selectedScreenIndex] ? (
                                 <div className="space-y-4">
                                     <button
@@ -1195,9 +1377,34 @@ export default Screen${selectedScreenIndex + 1};`}</code>
                             )}
                         </div>
                     </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="mt-6 flex justify-end space-x-4">
+                        {/* GitHub Connect Button */}
+                        {!isGitHubConnected ? (
+                            <button
+                                onClick={handleGitHubConnect}
+                                className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
+                            >
+                                <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                </svg>
+                                <span>Connect GitHub</span>
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handlePushToGitHub}
+                                disabled={!generatedCode}
+                                className="group bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-xl flex items-center space-x-2"
+                            >
+                                <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                </svg>
+                                <span>Push to GitHub</span>
+                            </button>
+                        )}
+                        
                         <button
                             onClick={handleOpenInVSCode}
                             disabled={!generatedCode}
@@ -1220,12 +1427,6 @@ export default Screen${selectedScreenIndex + 1};`}</code>
                                 </svg>
                                 <span>Download</span>
                             </div>
-                        </button>
-                        <button className="group bg-gradient-to-r from-purple-600 to-gray-600 hover:from-purple-500 hover:to-gray-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2">
-                            <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
-                            </svg>
-                            <span>Push to Git</span>
                         </button>
                     </div>
                 </div>

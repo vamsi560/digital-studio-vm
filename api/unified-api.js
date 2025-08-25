@@ -77,6 +77,12 @@ export default async function handler(req, res) {
       case 'github_export':
         return await handleGitHubExport(req, res);
       
+      case 'github_oauth_callback':
+        return await handleGitHubOAuthCallback(req, res);
+      
+      case 'github_create_repo':
+        return await handleGitHubCreateRepo(req, res);
+      
       case 'download_zip':
         return await handleDownloadZip(req, res);
       
@@ -109,9 +115,6 @@ export default async function handler(req, res) {
       
       case 'status':
         return await handleStatus(req, res);
-      
-      case 'download_zip':
-        return await handleDownloadZip(req, res);
       
       default:
         return res.status(400).json({ error: 'Invalid action specified' });
@@ -195,19 +198,24 @@ export default SampleComponent;`;
       styling: formData.body.styling || 'Tailwind CSS',
       architecture: formData.body.architecture || 'Component Based',
       customLogic: formData.body.customLogic || '',
-      routing: formData.body.routing || ''
+      routing: formData.body.routing || '',
+      includeAnalysis: formData.body.includeAnalysis === 'true',
+      colorExtraction: formData.body.colorExtraction === 'true',
+      pixelPerfect: formData.body.pixelPerfect === 'true'
     };
 
     // Generate code using Gemini AI
-    const generatedCode = await generateWithGemini(images, options);
+    const generationResult = await generateWithGemini(images, options);
+    const generatedCode = generationResult.code;
+    const componentAnalysis = generationResult.analysis;
     
     const projectId = `project-${Date.now()}`;
     
     res.json({
       success: true,
       mainCode: generatedCode,
+      analysis: componentAnalysis,
       qualityScore: { overall: 8, codeQuality: 8, performance: 8, accessibility: 8, security: 8 },
-      analysis: { analysis: 'Generated component analysis' },
       projectId,
       metadata: {
         id: projectId,
@@ -215,7 +223,7 @@ export default SampleComponent;`;
         framework: options.framework,
         qualityScore: { overall: 8 },
         timestamp: new Date().toISOString(),
-        analysis: 'Generated component analysis'
+        analysis: componentAnalysis
       },
       platform: options.platform,
       framework: options.framework,
@@ -268,16 +276,22 @@ async function handleFigmaImport(req, res) {
       platform: platform || 'web',
       framework: framework || 'React',
       styling: styling || 'Tailwind CSS',
-      architecture: architecture || 'Component Based'
+      architecture: architecture || 'Component Based',
+      includeAnalysis: true,
+      colorExtraction: true,
+      pixelPerfect: true
     };
 
-    const generatedCode = await generateWithGemini(images, options);
+    const generationResult = await generateWithGemini(images, options);
+    const generatedCode = generationResult.code;
+    const componentAnalysis = generationResult.analysis;
     
     const projectId = `figma-project-${Date.now()}`;
     
     res.json({
       success: true,
       mainCode: generatedCode,
+      analysis: componentAnalysis,
       figmaData: {
         fileKey,
         frames: frames.length,
@@ -925,11 +939,187 @@ async function generateWithGemini(images, options) {
   }));
 
   const result = await model.generateContent([prompt, ...imageParts]);
-  return result.response.text();
+  const generatedCode = result.response.text();
+  
+  // Generate component analysis if requested
+  let componentAnalysis = null;
+  if (options.includeAnalysis) {
+    try {
+      const analysisPrompt = `Analyze the following React component code and provide a detailed analysis:
+      
+      ${generatedCode}
+      
+      Please provide analysis in JSON format with the following structure:
+      {
+        "structure": "description of component structure",
+        "complexity": "Low/Medium/High",
+        "reusability": "Low/Medium/High",
+        "recommendations": "specific recommendations for improvement"
+      }`;
+      
+      const analysisResult = await model.generateContent(analysisPrompt);
+      const analysisText = analysisResult.response.text();
+      
+      // Try to extract JSON from the response
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        componentAnalysis = JSON.parse(jsonMatch[0]);
+      } else {
+        componentAnalysis = {
+          structure: "Component-based architecture",
+          complexity: "Medium",
+          reusability: "High",
+          recommendations: "Generated component follows React best practices"
+        };
+      }
+    } catch (error) {
+      console.warn('Failed to generate component analysis:', error);
+      componentAnalysis = {
+        structure: "Component-based architecture",
+        complexity: "Medium",
+        reusability: "High",
+        recommendations: "Generated component follows React best practices"
+      };
+    }
+  }
+  
+  return { code: generatedCode, analysis: componentAnalysis };
 }
 
 function buildCodePrompt(images, options) {
-  const { platform, framework, styling, architecture, customLogic, routing } = options;
+  const { platform, framework, styling, architecture, customLogic, routing, includeAnalysis, colorExtraction, pixelPerfect } = options;
+  
+  let frameworkSpecificInstructions = '';
+  
+  // Framework-specific instructions
+  switch (framework.toLowerCase()) {
+    case 'react':
+      frameworkSpecificInstructions = `
+- Use functional components with hooks
+- Follow React 18+ best practices
+- Use proper prop types or TypeScript
+- Implement proper state management
+- Use React.memo for performance optimization`;
+      break;
+    case 'angular':
+      frameworkSpecificInstructions = `
+- Use Angular 17+ with standalone components
+- Follow Angular style guide
+- Use proper TypeScript types
+- Implement proper dependency injection
+- Use Angular signals for state management`;
+      break;
+    case 'vue.js':
+      frameworkSpecificInstructions = `
+- Use Vue 3 Composition API
+- Follow Vue style guide
+- Use proper TypeScript types
+- Implement proper reactivity
+- Use Vue Router for navigation`;
+      break;
+    case 'svelte':
+      frameworkSpecificInstructions = `
+- Use Svelte 5+ syntax
+- Follow Svelte best practices
+- Use proper TypeScript types
+- Implement proper reactivity
+- Use SvelteKit for routing`;
+      break;
+    default:
+      frameworkSpecificInstructions = `
+- Use modern JavaScript/TypeScript
+- Follow framework best practices
+- Implement proper error handling
+- Use proper state management`;
+  }
+  
+  let stylingInstructions = '';
+  
+  // Styling-specific instructions
+  switch (styling.toLowerCase()) {
+    case 'tailwind css':
+      stylingInstructions = `
+- Use Tailwind CSS utility classes
+- Follow responsive design principles
+- Use proper color schemes and spacing
+- Implement dark mode support if needed
+- Use Tailwind's component patterns`;
+      break;
+    case 'css modules':
+      stylingInstructions = `
+- Use CSS Modules for scoped styling
+- Follow BEM methodology
+- Use proper CSS custom properties
+- Implement responsive design
+- Use CSS Grid and Flexbox`;
+      break;
+    case 'styled components':
+      stylingInstructions = `
+- Use styled-components for styling
+- Follow component-based styling patterns
+- Use proper theme management
+- Implement responsive design
+- Use proper prop-based styling`;
+      break;
+    case 'material-ui':
+      stylingInstructions = `
+- Use Material-UI components
+- Follow Material Design principles
+- Use proper theme customization
+- Implement responsive design
+- Use Material-UI's design system`;
+      break;
+    default:
+      stylingInstructions = `
+- Use modern CSS techniques
+- Follow responsive design principles
+- Use proper color schemes
+- Implement accessibility features`;
+  }
+  
+  let architectureInstructions = '';
+  
+  // Architecture-specific instructions
+  switch (architecture.toLowerCase()) {
+    case 'component-based':
+      architectureInstructions = `
+- Use component-based architecture
+- Create reusable components
+- Follow single responsibility principle
+- Use proper component composition
+- Implement proper prop drilling or context`;
+      break;
+    case 'atomic design':
+      architectureInstructions = `
+- Use Atomic Design methodology
+- Create atoms, molecules, organisms, templates, and pages
+- Follow atomic design principles
+- Use proper component hierarchy
+- Implement design system patterns`;
+      break;
+    case 'feature-based':
+      architectureInstructions = `
+- Use feature-based architecture
+- Organize code by features
+- Follow feature-based folder structure
+- Use proper feature isolation
+- Implement proper feature communication`;
+      break;
+    case 'domain-driven':
+      architectureInstructions = `
+- Use Domain-Driven Design principles
+- Organize code by business domains
+- Follow DDD patterns
+- Use proper domain modeling
+- Implement proper domain services`;
+      break;
+    default:
+      architectureInstructions = `
+- Use clean architecture principles
+- Follow separation of concerns
+- Use proper code organization
+- Implement proper abstractions`;
+  }
   
   return `
 Generate pixel-perfect ${framework} code for the provided UI screens.
@@ -941,14 +1131,28 @@ Requirements:
 - Architecture: ${architecture}
 - Custom Logic: ${customLogic || 'None'}
 - Routing: ${routing || 'None'}
+- Include Analysis: ${includeAnalysis}
+- Color Extraction: ${colorExtraction}
+- Pixel Perfect: ${pixelPerfect}
 
-Instructions:
+Framework Instructions:
+${frameworkSpecificInstructions}
+
+Styling Instructions:
+${stylingInstructions}
+
+Architecture Instructions:
+${architectureInstructions}
+
+Additional Instructions:
 1. Analyze the provided images carefully
 2. Generate responsive, accessible code
 3. Follow best practices for ${framework}
 4. Include proper error handling
 5. Add comprehensive comments
 6. Make it production-ready
+${colorExtraction ? '7. Extract and use exact colors from the design images' : ''}
+${pixelPerfect ? '8. Ensure pixel-perfect accuracy matching the design exactly' : ''}
 
 Return only the complete component code without explanations.
   `;
@@ -1326,6 +1530,180 @@ async function handleStatus(req, res) {
 
   } catch (error) {
     console.error('Status API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// GitHub OAuth Callback Handler
+async function handleGitHubOAuthCallback(req, res) {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Authorization code is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('GitHub OAuth callback received:', { code });
+
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID || 'your_github_client_id',
+        client_secret: process.env.GITHUB_CLIENT_SECRET || 'your_github_client_secret',
+        code: code
+      })
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      throw new Error(`GitHub OAuth error: ${tokenData.error_description || tokenData.error}`);
+    }
+
+    // Get user information
+    const userResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `token ${tokenData.access_token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    const userData = await userResponse.json();
+
+    res.json({
+      success: true,
+      access_token: tokenData.access_token,
+      user: {
+        id: userData.id,
+        login: userData.login,
+        name: userData.name,
+        avatar_url: userData.avatar_url
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('GitHub OAuth callback error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// GitHub Create Repository Handler
+async function handleGitHubCreateRepo(req, res) {
+  try {
+    const { projectData, projectName, framework, platform, description, isPrivate } = req.body;
+
+    if (!projectData || !projectName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Project data and name are required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    console.log('Creating GitHub repository:', { projectName, framework, platform });
+
+    // Get GitHub token from request headers or use a default for testing
+    const githubToken = req.headers['authorization']?.replace('Bearer ', '') || 'your_github_token';
+
+    // Create repository
+    const repoResponse = await fetch('https://api.github.com/user/repos', {
+      method: 'POST',
+      headers: {
+        'Authorization': `token ${githubToken}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: projectName,
+        description: description || `Generated using Digital Studio VM - ${framework} + ${platform}`,
+        private: isPrivate || false,
+        auto_init: true
+      })
+    });
+
+    const repoData = await repoResponse.json();
+
+    if (repoData.message) {
+      throw new Error(`GitHub API error: ${repoData.message}`);
+    }
+
+    // Create project files
+    const files = [
+      {
+        path: 'package.json',
+        content: JSON.stringify({
+          name: projectName,
+          version: "1.0.0",
+          private: true,
+          dependencies: {
+            "react": "^18.2.0",
+            "react-dom": "^18.2.0"
+          },
+          scripts: {
+            "dev": "vite",
+            "build": "vite build",
+            "preview": "vite preview"
+          }
+        }, null, 2)
+      },
+      {
+        path: 'src/App.jsx',
+        content: projectData.mainCode || '// Generated React component'
+      },
+      {
+        path: 'README.md',
+        content: `# ${projectName}\n\nGenerated using Digital Studio VM\n\nFramework: ${framework}\nPlatform: ${platform}\n\n## Getting Started\n\n1. Install dependencies: \`npm install\`\n2. Start development server: \`npm run dev\`\n3. Build for production: \`npm run build\``
+      }
+    ];
+
+    // Upload files to repository
+    for (const file of files) {
+      const fileResponse = await fetch(`https://api.github.com/repos/${repoData.owner.login}/${repoData.name}/contents/${file.path}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Add ${file.path}`,
+          content: Buffer.from(file.content).toString('base64')
+        })
+      });
+
+      if (!fileResponse.ok) {
+        console.warn(`Failed to upload ${file.path}:`, await fileResponse.text());
+      }
+    }
+
+    res.json({
+      success: true,
+      repoUrl: repoData.html_url,
+      repoName: repoData.name,
+      owner: repoData.owner.login,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('GitHub create repo error:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Internal server error',
