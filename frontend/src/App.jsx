@@ -129,6 +129,8 @@ const LandingView = ({ onNavigate }) => (
         </div>
         <div className="flex-grow flex items-center justify-center overflow-y-auto">
             <div className="w-full max-w-4xl mx-auto text-center px-4">
+                {/* Mac-style container */}
+                <div className="bg-[#1F2937] border border-[#374151] rounded-lg shadow-2xl p-8 max-w-4xl mx-auto">
                     <header className="mb-12 md:mb-16">
                         <div className="inline-flex items-center space-x-3 mb-2">
                             <div className="border border-gray-600 p-2 rounded-lg"><span className="font-bold text-3xl text-white">VM</span></div>
@@ -138,7 +140,7 @@ const LandingView = ({ onNavigate }) => (
                     <main>
                         <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-12 md:mb-16">
                             <span className="text-white">Introducing </span>
-                            <span className="bg-gradient-to-r from-green-400 to-emerald-600 text-transparent bg-clip-text"></span>
+                            <span className="bg-gradient-to-r from-green-400 to-emerald-600 text-transparent bg-clip-text">Digital Studio VM</span>
                         </h1>
                         <section>
                             <h2 className="text-xl text-gray-400 mb-8">We do ui/ux design for</h2>
@@ -152,7 +154,7 @@ const LandingView = ({ onNavigate }) => (
                 </div>
             </div>
         </div>
-   
+    </div>
 );
 
 const PrototypeView = ({ onNavigate, isJsZipLoaded }) => {
