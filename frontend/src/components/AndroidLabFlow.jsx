@@ -251,11 +251,17 @@ const AndroidLabFlow = ({ onNavigate }) => {
 
     // GitHub connection functions
     const handleGitHubConnect = () => {
-        const clientId = 'your_github_client_id'; // Replace with actual GitHub OAuth client ID
+        // TODO: Replace with your actual GitHub OAuth Client ID
+        const clientId = 'your_github_client_id'; // Get this from GitHub OAuth App settings
         const redirectUri = encodeURIComponent(window.location.origin + '/prototype');
         const scope = 'repo';
         const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
-        window.location.href = githubAuthUrl;
+        
+        // For now, show a helpful message
+        alert('GitHub OAuth setup required!\n\n1. Create GitHub OAuth App at: https://github.com/settings/developers\n2. Set Homepage URL: https://digital-studio-vm.vercel.app\n3. Set Callback URL: https://digital-studio-vm.vercel.app/prototype\n4. Replace "your_github_client_id" with your actual Client ID');
+        
+        // Uncomment the line below after setting up OAuth credentials
+        // window.location.href = githubAuthUrl;
     };
 
     const handleGitHubCallback = async (code) => {

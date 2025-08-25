@@ -159,11 +159,16 @@ const PrototypeLabFlow = ({ onNavigate }) => {
 
     // GitHub OAuth integration
     const handleGitHubConnect = () => {
-        const clientId = 'your_github_client_id'; // Replace with actual GitHub OAuth app client ID
-        const redirectUri = encodeURIComponent(window.location.origin + '/github-callback');
+        // TODO: Replace with your actual GitHub OAuth Client ID
+        const clientId = 'Ov23livMWxwbsd6jJw0D'; // Get this from GitHub OAuth App settings
+        const redirectUri = encodeURIComponent(window.location.origin + '/prototype');
         const scope = encodeURIComponent('repo user');
         const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
         
+        // For now, show a helpful message
+        //alert('GitHub OAuth setup required!\n\n1. Create GitHub OAuth App at: https://github.com/settings/developers\n2. Set Homepage URL: https://digital-studio-vm.vercel.app\n3. Set Callback URL: https://digital-studio-vm.vercel.app/prototype\n4. Replace "your_github_client_id" with your actual Client ID');
+        
+        // Uncomment the line below after setting up OAuth credentials
         window.location.href = githubAuthUrl;
     };
 

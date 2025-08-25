@@ -1561,8 +1561,8 @@ async function handleGitHubOAuthCallback(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        client_id: process.env.GITHUB_CLIENT_ID || 'your_github_client_id',
-        client_secret: process.env.GITHUB_CLIENT_SECRET || 'your_github_client_secret',
+        client_id: process.env.GITHUB_CLIENT_ID || 'Ov23livMWxwbsd6jJw0D',
+        client_secret: process.env.GITHUB_CLIENT_SECRET || '9bcc0b410ec2dcfbec8c2cf7c1c5b3bce5e6089a',
         code: code
       })
     });
