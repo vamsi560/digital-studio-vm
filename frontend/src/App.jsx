@@ -154,7 +154,7 @@ const LandingView = ({ onNavigate }) => (
                 </div>
             </div>
         </div>
-   
+    </div>
 );
 
 const PrototypeView = ({ onNavigate, isJsZipLoaded }) => {
