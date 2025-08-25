@@ -17,8 +17,8 @@ const TrafficLights = () => (
 );
 
 const ServiceCard = ({ title, svgPath, onClick, disabled = false }) => (
-    <div onClick={!disabled ? onClick : undefined} className={`bg-[#1F2937] border border-[#374151] rounded-lg p-2 flex flex-col items-center justify-center h-full transition-all duration-300 ease-in-out ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-200 hover:-translate-y-1'}`}>
-        <svg className="w-4 h-4 mb-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div onClick={!disabled ? onClick : undefined} className={`bg-black border border-gray-700 rounded-lg p-2 flex flex-col items-center justify-center h-full transition-all duration-300 ease-in-out ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-gray-400 hover:-translate-y-1'}`}>
+        <svg className="w-3 h-3 mb-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={svgPath}></path>
         </svg>
         <h3 className="font-semibold text-white text-xs">{title}</h3>
@@ -122,37 +122,28 @@ const InitialView = ({ onNavigate }) => (
 );
 
 const LandingView = ({ onNavigate }) => (
-    <div className="bg-[#121212] w-full h-screen">
-        <div className="flex-shrink-0 h-11 flex items-center justify-center relative border-b border-gray-700/50">
-            <TrafficLights />
-            <p className="text-sm text-gray-400"></p>
-        </div>
-        <div className="flex-grow flex items-center justify-center overflow-y-auto">
-            <div className="w-full max-w-4xl mx-auto text-center px-4">
-                {/* Mac-style container */}
-                <div className="bg-[#1F2937] border border-[#374151] rounded-lg shadow-2xl p-3 max-w-sm mx-auto">
-                    <header className="mb-4">
-                        <div className="inline-flex items-center space-x-1.5 mb-1">
-                            <div className="border border-gray-600 p-0.5 rounded-sm"><span className="font-bold text-sm text-white">VM</span></div>
-                            <span className="text-sm font-bold text-green-500">Digital Studio</span>
-                        </div>
-                    </header>
-                    <main>
-                        <h1 className="text-lg font-bold leading-tight mb-4">
-                            <span className="text-white">Introducing </span>
-                            <span className="bg-gradient-to-r from-green-400 to-emerald-600 text-transparent bg-clip-text">Digital Studio VM</span>
-                        </h1>
-                        <section>
-                            <h2 className="text-xs text-gray-400 mb-3">We do ui/ux design for</h2>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 h-16">
-                                <ServiceCard title="Prototype Lab" svgPath="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" onClick={() => onNavigate('prototype')} />
-                                <ServiceCard title="App Lab" svgPath="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 002 2z" onClick={() => onNavigate('app-lab-landing')} />
-                                <ServiceCard title="Integration Lab" svgPath="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9m-9 9a9 9 0 00-9-9" onClick={() => onNavigate('integration-lab')} />
-                            </div>
-                        </section>
-                    </main>
+    <div className="bg-black w-full h-screen flex items-center justify-center">
+        {/* Mac-style container */}
+        <div className="bg-black border border-gray-700 rounded-lg shadow-2xl p-4 max-w-xs mx-auto">
+            <header className="mb-3">
+                <div className="inline-flex items-center space-x-2 mb-1">
+                    <div className="border border-gray-600 p-1 rounded"><span className="font-bold text-sm text-white">VM</span></div>
+                    <span className="text-sm font-bold text-white">Digital Studio</span>
                 </div>
-            </div>
+            </header>
+            <main>
+                <h1 className="text-base font-bold leading-tight mb-3 text-white">
+                    Introducing Digital Studio VM
+                </h1>
+                <section>
+                    <h2 className="text-xs text-gray-400 mb-2">We do ui/ux design for</h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 h-14">
+                        <ServiceCard title="Prototype Lab" svgPath="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" onClick={() => onNavigate('prototype')} />
+                        <ServiceCard title="App Lab" svgPath="M12 18h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 002 2z" onClick={() => onNavigate('app-lab-landing')} />
+                        <ServiceCard title="Integration Lab" svgPath="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9V3m0 18a9 9 0 009-9m-9 9a9 9 0 00-9-9" onClick={() => onNavigate('integration-lab')} />
+                    </div>
+                </section>
+            </main>
         </div>
     </div>
 );
