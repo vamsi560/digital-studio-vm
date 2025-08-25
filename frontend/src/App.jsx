@@ -82,8 +82,7 @@ const ErrorDisplay = ({ message }) => {
 // --- Main Application Views ---
 
 const InitialView = ({ onNavigate }) => (
-    
-<div className="h-screen w-full flex flex-col items-center justify-center p-8 text-center bg-black relative">
+    <div className="h-screen w-full flex flex-col items-center justify-center p-4 text-center bg-black relative">
   <header className="mb-8">
     <h1 className="text-5xl md:text-7xl font-black text-white whitespace-nowrap">
       VM Digital Studio does
@@ -123,14 +122,13 @@ const InitialView = ({ onNavigate }) => (
 );
 
 const LandingView = ({ onNavigate }) => (
-   
-        <div className="  bg-[#121212]    pt-12">
-            <div className="flex-shrink-0 h-11 flex items-center justify-center relative border-b border-gray-700/50">
-                <TrafficLights />
-                <p className="text-sm text-gray-400"></p>
-            </div>
-            <div className="flex-grow  flex items-center justify-center overflow-y-auto">
-                 <div className="w-full max-w-4xl mx-auto text-center">
+    <div className="bg-[#121212] w-full h-screen">
+        <div className="flex-shrink-0 h-11 flex items-center justify-center relative border-b border-gray-700/50">
+            <TrafficLights />
+            <p className="text-sm text-gray-400"></p>
+        </div>
+        <div className="flex-grow flex items-center justify-center overflow-y-auto">
+            <div className="w-full max-w-4xl mx-auto text-center px-4">
                     <header className="mb-12 md:mb-16">
                         <div className="inline-flex items-center space-x-3 mb-2">
                             <div className="border border-gray-600 p-2 rounded-lg"><span className="font-bold text-3xl text-white">VM</span></div>
@@ -500,8 +498,8 @@ const PrototypeView = ({ onNavigate, isJsZipLoaded }) => {
 };
 
 const AppLabLandingView = ({ onNavigate }) => (
-    <div className="h-full w-full flex items-center justify-center ">
-        <div className="w-full max-w-7xl h-[700px] bg-[#121212] rounded-xl shadow-2xl flex flex-col border border-gray-700/50 mx-auto pt-8">
+    <div className="h-screen w-full flex items-center justify-center">
+        <div className="w-full h-full bg-[#121212] flex flex-col">
             <div className="flex-shrink-0 h-11 flex items-center justify-center relative border-b border-gray-700/50">
                 <TrafficLights />
                 <p className="text-sm text-gray-400">App Lab</p>
@@ -884,16 +882,16 @@ const IntegrationLabView = ({ onNavigate }) => {
     };
 
     return (
-        <div className="content-wrapper min-h-screen flex flex-col p-8 bg-[#0D0F18]">
+        <div className="content-wrapper h-screen w-full flex flex-col p-4 bg-[#0D0F18]">
             <button onClick={() => onNavigate('landing')} className="absolute top-5 left-5 z-50 bg-gray-800/80 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">&larr; Back</button>
             
-            <header className="text-center my-8">
-                <h1 className="text-5xl md:text-6xl font-black text-white">
+            <header className="text-center my-4">
+                <h1 className="text-4xl md:text-5xl font-black text-white">
                     <span className="text-green-400">AI</span> is the new <span className="text-green-400">UI</span>
                 </h1>
             </header>
 
-            <div className="flex-grow flex flex-col lg:flex-row gap-6 w-full max-w-[90rem] mx-auto">
+            <div className="flex-grow flex flex-col lg:flex-row gap-4 w-full">
                 <aside className="w-full lg:w-80 flex-shrink-0 rounded-xl p-4 flex flex-col gap-4 bg-[#1f2937] border border-gray-700/50">
                     <h3 className="text-lg font-bold text-white mb-2">PROMPT EXAMPLES</h3>
                     <div className="flex flex-col gap-2">
@@ -1052,17 +1050,12 @@ function App() {
 
 
     return (
-        
-
-       <div className='bg-black min-h-screen'>
-        <main className="relative w-full max-w-[2600px] mx-auto min-h-screen px-2 md:px-4" style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}>
-
-
-            {/* Main View */}
-            {renderView()}
-        </main>
+        <div className='bg-black min-h-screen w-full'>
+            <main className="relative w-full min-h-screen">
+                {/* Main View */}
+                {renderView()}
+            </main>
         </div>
-       
     );
 }
 
