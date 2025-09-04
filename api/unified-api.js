@@ -143,10 +143,19 @@ async function handleCodeGeneration(req, res) {
           console.log('Form data parsed successfully');
           console.log('Files received:', req.files?.length || 0);
           console.log('Body data:', req.body);
+          console.log('Action from body:', req.body.action);
+          console.log('Platform from body:', req.body.platform);
+          console.log('Framework from body:', req.body.framework);
           resolve(req);
         }
       });
     });
+
+    // Extract action and other parameters from form data
+    const action = formData.body.action;
+    console.log('Action received:', action);
+    console.log('Full body data:', formData.body);
+    console.log('Files received:', formData.files);
 
     // Handle case where no files are uploaded
     if (!formData.files || formData.files.length === 0) {

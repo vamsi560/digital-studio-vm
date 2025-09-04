@@ -100,7 +100,7 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             const formData = new FormData();
             const orderedScreens = screenOrder.filter(Boolean);
             
-            formData.append('action', 'generate_pixel_perfect_code');
+            formData.append('action', 'generate_code');
             
             // Add images if available
             orderedScreens.forEach((screen, index) => {
@@ -350,8 +350,33 @@ Generated on: ${new Date().toISOString()}
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            // Show instructions for opening in VS Code
-            alert('Project downloaded! To open in VS Code:\n\n1. Extract the ZIP file\n2. Open VS Code\n3. Go to File > Open Folder\n4. Select the extracted project folder\n\nOr use the command: code /path/to/extracted/folder');
+            // Try to open directly in VS Code using protocol handler
+            try {
+                // Try to use VS Code protocol handler to open the project
+                const projectName = `digital-studio-project-${Date.now()}`;
+                
+                // Create a clickable link that tries to open in VS Code
+                const vsCodeLink = document.createElement('a');
+                vsCodeLink.href = `vscode://file/${projectName}`;
+                vsCodeLink.style.display = 'none';
+                document.body.appendChild(vsCodeLink);
+                
+                // Try to trigger VS Code protocol
+                vsCodeLink.click();
+                document.body.removeChild(vsCodeLink);
+                
+                // Show success message
+                setTimeout(() => {
+                    alert('Project downloaded and VS Code opened! If VS Code didn\'t open automatically:\n\n1. Extract the ZIP file\n2. Open VS Code\n3. Go to File > Open Folder\n4. Select the extracted project folder');
+                }, 500);
+                
+            } catch (error) {
+                console.log('Could not open directly in VS Code:', error);
+                // Fallback to instructions
+                setTimeout(() => {
+                    alert('Project downloaded! To open in VS Code:\n\n1. Extract the ZIP file\n2. Open VS Code\n3. Go to File > Open Folder\n4. Select the extracted project folder');
+                }, 500);
+            }
         });
     };
 
@@ -1340,19 +1365,32 @@ Generated on: ${new Date().toISOString()}
                                             Component Analysis
                                         </h4>
                                         <div className="text-xs text-blue-100 space-y-2">
-                                            <div className="bg-blue-800/30 rounded p-2">
-                                                <strong>Structure:</strong> {componentAnalysis.structure || 'Component-based architecture'}
-                                            </div>
-                                            <div className="bg-blue-800/30 rounded p-2">
-                                                <strong>Complexity:</strong> {componentAnalysis.complexity || 'Medium'}
-                                            </div>
-                                            <div className="bg-blue-800/30 rounded p-2">
-                                                <strong>Reusability:</strong> {componentAnalysis.reusability || 'High'}
-                                            </div>
-                                            {componentAnalysis.recommendations && (
+                                            {/* Handle different analysis formats */}
+                                            {typeof componentAnalysis === 'string' ? (
                                                 <div className="bg-blue-800/30 rounded p-2">
-                                                    <strong>Recommendations:</strong> {componentAnalysis.recommendations}
+                                                    <strong>Analysis:</strong> {componentAnalysis}
                                                 </div>
+                                            ) : componentAnalysis.analysis ? (
+                                                <div className="bg-blue-800/30 rounded p-2">
+                                                    <strong>Analysis:</strong> {componentAnalysis.analysis}
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="bg-blue-800/30 rounded p-2">
+                                                        <strong>Structure:</strong> {componentAnalysis.structure || 'Component-based architecture'}
+                                                    </div>
+                                                    <div className="bg-blue-800/30 rounded p-2">
+                                                        <strong>Complexity:</strong> {componentAnalysis.complexity || 'Medium'}
+                                                    </div>
+                                                    <div className="bg-blue-800/30 rounded p-2">
+                                                        <strong>Reusability:</strong> {componentAnalysis.reusability || 'High'}
+                                                    </div>
+                                                    {componentAnalysis.recommendations && (
+                                                        <div className="bg-blue-800/30 rounded p-2">
+                                                            <strong>Recommendations:</strong> {componentAnalysis.recommendations}
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </div>
                                     </div>
