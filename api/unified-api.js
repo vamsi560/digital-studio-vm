@@ -146,7 +146,7 @@ async function handleCodeGeneration(req, res) {
           console.log('Action from body:', req.body.action);
           console.log('Platform from body:', req.body.platform);
           console.log('Framework from body:', req.body.framework);
-          resolve(req);
+          resolve({ files: req.files, body: req.body });
         }
       });
     });
@@ -156,6 +156,14 @@ async function handleCodeGeneration(req, res) {
     console.log('Action received:', action);
     console.log('Full body data:', formData.body);
     console.log('Files received:', formData.files);
+    console.log('Number of files:', formData.files?.length || 0);
+    if (formData.files && formData.files.length > 0) {
+      console.log('First file details:', {
+        originalname: formData.files[0].originalname,
+        mimetype: formData.files[0].mimetype,
+        size: formData.files[0].size
+      });
+    }
 
     // Handle case where no files are uploaded
     if (!formData.files || formData.files.length === 0) {
@@ -195,11 +203,20 @@ export default SampleComponent;`;
       return;
     }
 
-    const images = formData.files?.map(file => ({
-      data: file.buffer.toString('base64'),
-      mimeType: file.mimetype,
-      originalname: file.originalname
-    })) || [];
+    console.log('Processing uploaded images:', formData.files.length);
+    const images = formData.files.map(file => {
+      const imageData = {
+        data: file.buffer.toString('base64'),
+        mimeType: file.mimetype,
+        originalname: file.originalname
+      };
+      console.log('Processed image:', {
+        originalname: imageData.originalname,
+        mimeType: imageData.mimeType,
+        dataLength: imageData.data.length
+      });
+      return imageData;
+    });
 
     const options = {
       platform: formData.body.platform || 'web',
@@ -937,7 +954,14 @@ async function handleEnhancedAPI(req, res) {
 
 // Helper functions
 async function generateWithGemini(images, options) {
+  console.log('generateWithGemini called with:', {
+    imageCount: images.length,
+    options: options
+  });
+  
   const prompt = buildCodePrompt(images, options);
+  console.log('Generated prompt length:', prompt.length);
+  
   const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
   
   const imageParts = images.map(img => ({
@@ -946,9 +970,12 @@ async function generateWithGemini(images, options) {
       mimeType: img.mimeType || 'image/png'
     }
   }));
+  
+  console.log('Image parts prepared:', imageParts.length);
 
   const result = await model.generateContent([prompt, ...imageParts]);
   const generatedCode = result.response.text();
+  console.log('Gemini API response received, code length:', generatedCode.length);
   
   // Generate component analysis if requested
   let componentAnalysis = null;
