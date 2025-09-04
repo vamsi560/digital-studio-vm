@@ -231,9 +231,19 @@ export default SampleComponent;`;
     };
 
     // Generate code using Gemini AI
+    console.log('About to call generateWithGemini with:', {
+      imageCount: images.length,
+      options: options
+    });
+    
     const generationResult = await generateWithGemini(images, options);
     const generatedCode = generationResult.code;
     const componentAnalysis = generationResult.analysis;
+    
+    console.log('Code generation completed:', {
+      codeLength: generatedCode.length,
+      hasAnalysis: !!componentAnalysis
+    });
     
     const projectId = `project-${Date.now()}`;
     

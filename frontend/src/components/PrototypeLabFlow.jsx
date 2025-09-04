@@ -51,10 +51,22 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             url: URL.createObjectURL(file),
             file: file
         }));
+        
+        console.log('Files uploaded:', {
+            newScreens: newScreens.map(s => ({ name: s.name, size: s.file.size })),
+            currentUploadedScreens: uploadedScreens.length,
+            currentScreenOrder: screenOrder.length
+        });
+        
         setUploadedScreens(prev => [...prev, ...newScreens]);
         // Initialize screen order with empty slots
         setScreenOrder(prev => [...prev, ...new Array(newScreens.length).fill(null)]);
-    }, []);
+        
+        console.log('Screen order updated:', {
+            newLength: screenOrder.length + newScreens.length,
+            nullSlots: new Array(newScreens.length).fill(null).length
+        });
+    }, [uploadedScreens, screenOrder]);
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -86,6 +98,12 @@ const PrototypeLabFlow = ({ onNavigate }) => {
         newScreenOrder[index] = draggedItem;
         setScreenOrder(newScreenOrder);
         
+        console.log('Screen reordered:', {
+            draggedScreen: draggedItem.name,
+            newIndex: index,
+            newScreenOrder: newScreenOrder.filter(Boolean).map(s => s.name)
+        });
+        
         // Remove from uploaded screens
         setUploadedScreens(prev => prev.filter(screen => screen.id !== draggedItem.id));
         setDraggedItem(null);
@@ -100,12 +118,19 @@ const PrototypeLabFlow = ({ onNavigate }) => {
             const formData = new FormData();
             const orderedScreens = screenOrder.filter(Boolean);
             
+            console.log('Preparing form data:', {
+                totalScreens: screenOrder.length,
+                orderedScreens: orderedScreens.length,
+                screens: orderedScreens.map(s => ({ name: s.name, size: s.file?.size }))
+            });
+            
             formData.append('action', 'generate_code');
             
             // Add images if available
             orderedScreens.forEach((screen, index) => {
                 formData.append('images', screen.file);
                 formData.append('screenOrder', index);
+                console.log(`Added image ${index}:`, screen.name, 'Size:', screen.file?.size);
             });
             
             // Enhanced parameters for better code generation
@@ -1016,14 +1041,12 @@ Generated on: ${new Date().toISOString()}
                                             <span className="text-green-400">📄</span>
                                             <span>src/App.jsx</span>
                                         </div>
-                                        <div className="flex items-center space-x-2 text-gray-300">
-                                            <span className="text-purple-400">📄</span>
-                                            <span>src/components/Screen1.jsx</span>
-                                        </div>
-                                        <div className="flex items-center space-x-2 text-gray-300">
-                                            <span className="text-purple-400">📄</span>
-                                            <span>src/components/Screen2.jsx</span>
-                                        </div>
+                                        {screenOrder.filter(Boolean).map((screen, index) => (
+                                            <div key={index} className="flex items-center space-x-2 text-gray-300">
+                                                <span className="text-purple-400">📄</span>
+                                                <span>src/components/Screen{index + 1}.jsx</span>
+                                            </div>
+                                        ))}
                                         <div className="flex items-center space-x-2 text-gray-300">
                                             <span className="text-yellow-400">📄</span>
                                             <span>src/styles/App.css</span>
