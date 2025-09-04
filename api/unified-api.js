@@ -1035,6 +1035,20 @@ async function generateWithGemini(images, options) {
 function buildCodePrompt(images, options) {
   const { platform, framework, styling, architecture, customLogic, routing, includeAnalysis, colorExtraction, pixelPerfect } = options;
   
+  // Build image context description
+  let imageContext = '';
+  if (images && images.length > 0) {
+    imageContext = `You have been provided with ${images.length} UI design image(s) to analyze and convert to code.`;
+    if (images.length === 1) {
+      imageContext += ` The image shows a UI design that needs to be implemented.`;
+    } else {
+      imageContext += ` These images show UI designs that need to be implemented.`;
+    }
+    imageContext += ` Please analyze the visual design, layout, components, and styling from these images to generate accurate code.`;
+  } else {
+    imageContext = `No images were provided. Please generate a sample component based on the specified requirements.`;
+  }
+  
   let frameworkSpecificInstructions = '';
   
   // Framework-specific instructions
