@@ -1170,6 +1170,8 @@ function buildCodePrompt(images, options) {
   return `
 Generate pixel-perfect ${framework} code for the provided UI screens.
 
+${imageContext}
+
 Requirements:
 - Platform: ${platform}
 - Framework: ${framework}
