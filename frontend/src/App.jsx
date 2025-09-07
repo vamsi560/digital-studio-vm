@@ -5,6 +5,8 @@ import AdvancedReactPreview from './components/advanced-react-preview';
 import PrototypeLabFlow from './components/PrototypeLabFlow';
 import AndroidLabFlow from './components/AndroidLabFlow';
 import IOSLabFlow from './components/IOSLabFlow';
+import ProjectFileExplorer from './components/ProjectFileExplorer';
+import CodeViewer from './components/CodeViewer';
 
 // --- Reusable UI Components ---
 
@@ -687,12 +689,6 @@ const AppLabGenerateView = ({ onNavigate, initialPlatform, isJsZipLoaded }) => {
                     {Object.keys(generatedFiles).length > 0 && !isLoading && (
                          <div className="w-full bg-gray-900 border border-gray-700 rounded-lg text-sm text-gray-200 relative mt-6">
                             <div className="p-4 border-b border-gray-700"><h2 className="font-bold text-lg">Generated Code</h2></div>
-                            {/* --- Add React Preview UI --- */}
-                            <div className="p-4 border-b border-gray-700">
-                                <h3 className="font-bold text-lg mb-2">Live React Preview</h3>
-                                <AdvancedReactPreview code={previewCode} showAnalysis={true} />
-                            </div>
-                            {/* --- End React Preview UI --- */}
                             {accuracyResult && (
                                 <div className="p-4 border-b border-gray-700">
                                     <h3 className="font-bold text-lg mb-2">Estimated Accuracy</h3>

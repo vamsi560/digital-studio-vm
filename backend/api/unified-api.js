@@ -103,7 +103,161 @@ export default async function handler(req, res) {
   }
 }
 
-// Handle code generation (original generate-code functionality)
+// Enhanced code generation function that creates complete projects
+async function generateCompleteReactProject(images, options) {
+  // Generate the main React component
+  const mainComponentCode = await generateWithGemini(images, options);
+  
+  // Create complete project structure
+  const projectFiles = {
+    'package.json': JSON.stringify({
+      name: "digital-studio-project",
+      version: "1.0.0",
+      private: true,
+      dependencies: {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-scripts": "5.0.1",
+        ...(options.styling === 'Tailwind CSS' && {
+          "tailwindcss": "^3.3.0",
+          "autoprefixer": "^10.4.14",
+          "postcss": "^8.4.24"
+        })
+      },
+      scripts: {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject"
+      },
+      eslintConfig: {
+        extends: ["react-app", "react-app/jest"]
+      },
+      browserslist: {
+        production: [">0.2%", "not dead", "not op_mini all"],
+        development: ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+      }
+    }, null, 2),
+
+    'src/App.jsx': mainComponentCode,
+
+    'src/index.js': `import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`,
+
+    'src/index.css': generateCSS(options.styling),
+
+    'public/index.html': `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="Generated React App by Digital Studio VM" />
+    <title>Digital Studio Project</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+</html>`,
+
+    'README.md': `# Digital Studio Project
+
+This project was generated using Digital Studio VM.
+
+## Available Scripts
+
+In the project directory, you can run:
+
+### \`npm start\`
+
+Runs the app in development mode.
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+
+### \`npm test\`
+
+Launches the test runner in interactive watch mode.
+
+### \`npm run build\`
+
+Builds the app for production to the \`build\` folder.
+
+## Generated Features
+
+- Framework: ${options.framework}
+- Platform: ${options.platform}
+- Styling: ${options.styling}
+- Architecture: ${options.architecture}
+
+Generated on: ${new Date().toISOString()}
+`
+  };
+
+  // Add Tailwind config if using Tailwind CSS
+  if (options.styling === 'Tailwind CSS') {
+    projectFiles['tailwind.config.js'] = `/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}`;
+
+    projectFiles['postcss.config.js'] = `module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}`;
+  }
+
+  return projectFiles;
+}
+
+function generateCSS(stylingOption) {
+  const baseCSS = `body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}`;
+
+  if (stylingOption === 'Tailwind CSS') {
+    return `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+${baseCSS}`;
+  }
+
+  return baseCSS;
+}
+
+// Update the handleCodeGeneration function
 async function handleCodeGeneration(req, res) {
   try {
     console.log('Parsing form data...');
@@ -123,37 +277,34 @@ async function handleCodeGeneration(req, res) {
 
     // Handle case where no files are uploaded
     if (!formData.files || formData.files.length === 0) {
-      console.log('No files uploaded, generating sample code...');
-      const sampleCode = `// Sample React Component
-import React from 'react';
+      console.log('No files uploaded, generating sample project...');
+      
+      const options = {
+        platform: 'web',
+        framework: 'React',
+        styling: 'Tailwind CSS',
+        architecture: 'Component Based'
+      };
 
-const SampleComponent = () => {
-  return (
-    <div className="sample-component">
-      <h1>Sample React Component</h1>
-      <p>This is a sample component generated without uploaded images.</p>
-    </div>
-  );
-};
-
-export default SampleComponent;`;
-
+      const sampleProjectFiles = await generateCompleteReactProject([], options);
+      
       res.json({
         success: true,
-        mainCode: sampleCode,
+        projectFiles: sampleProjectFiles,
+        mainCode: sampleProjectFiles['src/App.jsx'],
         qualityScore: { overall: 8, codeQuality: 8, performance: 8, accessibility: 8, security: 8 },
-        analysis: { analysis: 'Sample component analysis' },
+        analysis: { analysis: 'Sample project with complete file structure' },
         projectId: `project-${Date.now()}`,
         metadata: {
           id: `project-${Date.now()}`,
-          platform: 'web',
-          framework: 'React',
+          platform: options.platform,
+          framework: options.framework,
           qualityScore: { overall: 8 },
           timestamp: new Date().toISOString(),
-          analysis: 'Sample component analysis'
+          analysis: 'Complete project structure generated'
         },
-        platform: 'web',
-        framework: 'React',
+        platform: options.platform,
+        framework: options.framework,
         timestamp: new Date().toISOString()
       });
       return;
@@ -174,16 +325,17 @@ export default SampleComponent;`;
       routing: formData.body.routing || ''
     };
 
-    // Generate code using Gemini AI
-    const generatedCode = await generateWithGemini(images, options);
+    // Generate complete project with all files
+    const projectFiles = await generateCompleteReactProject(images, options);
     
     const projectId = `project-${Date.now()}`;
     
     res.json({
       success: true,
-      mainCode: generatedCode,
+      projectFiles: projectFiles,
+      mainCode: projectFiles['src/App.jsx'],
       qualityScore: { overall: 8, codeQuality: 8, performance: 8, accessibility: 8, security: 8 },
-      analysis: { analysis: 'Generated component analysis' },
+      analysis: { analysis: 'Complete project structure generated with all necessary files' },
       projectId,
       metadata: {
         id: projectId,
@@ -191,7 +343,7 @@ export default SampleComponent;`;
         framework: options.framework,
         qualityScore: { overall: 8 },
         timestamp: new Date().toISOString(),
-        analysis: 'Generated component analysis'
+        analysis: 'Complete project structure generated'
       },
       platform: options.platform,
       framework: options.framework,
@@ -617,437 +769,4 @@ Generated on: ${new Date().toISOString()}
     }
 
     // Add index.html
-    const indexHtml = `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${projectName}</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>`;
-
-    zip.file("index.html", indexHtml);
-
-    // Add main.jsx
-    const mainJsx = `import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)`;
-
-    zip.file("src/main.jsx", mainJsx);
-
-    // Add basic CSS
-    const indexCss = `* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  min-height: 100vh;
-}`;
-
-    zip.file("src/index.css", indexCss);
-
-    // Add Vite config
-    const viteConfig = `import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
-})`;
-
-    zip.file("vite.config.js", viteConfig);
-
-    // Generate ZIP file
-    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
-
-    // Set response headers for file download
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="${projectName}.zip"`);
-    res.setHeader('Content-Length', zipBuffer.length);
-
-    res.send(zipBuffer);
-
-  } catch (error) {
-    console.error('GitHub export error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// Handle download ZIP
-async function handleDownloadZip(req, res) {
-  try {
-    const { projectData, projectName } = req.body;
-
-    if (!projectData || !projectName) {
-      return res.status(400).json({
-        success: false,
-        error: 'Project data and name are required',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    console.log('Downloading project ZIP:', { projectName });
-
-    // Create a ZIP file
-    const zip = new JSZip();
-    
-    if (projectData.mainCode) {
-      zip.file("App.jsx", projectData.mainCode);
-    }
-
-    // Generate ZIP file
-    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
-
-    // Set response headers for file download
-    res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', `attachment; filename="${projectName}.zip"`);
-    res.setHeader('Content-Length', zipBuffer.length);
-
-    res.send(zipBuffer);
-
-  } catch (error) {
-    console.error('Download ZIP error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// Handle live preview
-async function handleLivePreview(req, res) {
-  try {
-    const { code, framework } = req.body;
-
-    if (!code) {
-      return res.status(400).json({
-        success: false,
-        error: 'Code is required',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    console.log('Generating live preview for:', { framework });
-
-    // Generate preview HTML
-    const previewHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Preview</title>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-        .preview-container { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
-    </style>
-</head>
-<body>
-    <div class="preview-container">
-        <h3>Live Preview - ${framework} Component</h3>
-        <div id="root"></div>
-    </div>
-    
-    <script type="text/babel">
-        ${code}
-        
-        ReactDOM.render(
-            React.createElement(window.GeneratedComponent || window.App || window.default),
-            document.getElementById('root')
-        );
-    </script>
-</body>
-</html>`;
-
-    res.json({
-      success: true,
-      previewHtml,
-      framework,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('Live preview error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// Handle code evaluation
-async function handleCodeEvaluation(req, res) {
-  try {
-    const { code, framework, platform } = req.body;
-
-    if (!code) {
-      return res.status(400).json({
-        success: false,
-        error: 'Code is required',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    console.log('Evaluating code:', { framework, platform });
-
-    const evaluationPrompt = `
-Evaluate the quality of the following ${framework} code for ${platform}:
-
-${code}
-
-Provide a detailed evaluation covering:
-1. Code Quality (1-10): Readability, maintainability, documentation, naming
-2. Performance (1-10): Efficiency, memory usage, execution speed
-3. Accessibility (1-10): WCAG compliance, usability, responsive design
-4. Security (1-10): Vulnerabilities, data protection, input validation
-
-Return the evaluation as JSON format with scores and recommendations.
-    `;
-
-    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(evaluationPrompt);
-    const evaluation = result.response.text();
-
-    res.json({
-      success: true,
-      evaluation,
-      framework,
-      platform,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('Code evaluation error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// Handle enhanced API
-async function handleEnhancedAPI(req, res) {
-  try {
-    const { action, data } = req.body;
-
-    console.log('Enhanced API request:', { action, data });
-
-    // Handle different enhanced API actions
-    switch (action) {
-      case 'advanced_code_generation':
-        return await handleAdvancedCodeGeneration(req, res, data);
-      
-      case 'code_optimization':
-        return await handleCodeOptimization(req, res, data);
-      
-      case 'component_analysis':
-        return await handleComponentAnalysis(req, res, data);
-      
-      default:
-        return res.status(400).json({ error: 'Invalid enhanced API action' });
-    }
-
-  } catch (error) {
-    console.error('Enhanced API error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
-  }
-}
-
-// Helper functions
-async function generateWithGemini(images, options) {
-  const prompt = buildCodePrompt(images, options);
-  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  
-  const imageParts = images.map(img => ({
-    inlineData: {
-      data: img.data,
-      mimeType: img.mimeType || 'image/png'
-    }
-  }));
-
-  const result = await model.generateContent([prompt, ...imageParts]);
-  return result.response.text();
-}
-
-function buildCodePrompt(images, options) {
-  const { platform, framework, styling, architecture, customLogic, routing } = options;
-  
-  return `
-Generate pixel-perfect ${framework} code for the provided UI screens.
-
-Requirements:
-- Platform: ${platform}
-- Framework: ${framework}
-- Styling: ${styling}
-- Architecture: ${architecture}
-- Custom Logic: ${customLogic || 'None'}
-- Routing: ${routing || 'None'}
-
-Instructions:
-1. Analyze the provided images carefully
-2. Generate responsive, accessible code
-3. Follow best practices for ${framework}
-4. Include proper error handling
-5. Add comprehensive comments
-6. Make it production-ready
-
-Return only the complete component code without explanations.
-  `;
-}
-
-function extractFigmaFileKey(figmaUrl) {
-  const patterns = [
-    /figma\.com\/file\/([a-zA-Z0-9]+)/,
-    /figma\.com\/design\/([a-zA-Z0-9]+)/,
-    /figma\.com\/proto\/([a-zA-Z0-9]+)/
-  ];
-
-  for (const pattern of patterns) {
-    const match = figmaUrl.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}
-
-async function getFigmaFileData(fileKey) {
-  const token = "figd_00LP2oP9Fqfd0PY0alm9L9tsjlC85pn8m5KEeXMn";
-  const response = await fetch(`https://api.figma.com/v1/files/${fileKey}`, {
-    headers: {
-      'X-Figma-Token': token,
-      'User-Agent': 'Digital-Studio-VM/1.0'
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch Figma file: ${response.statusText}`);
-  }
-
-  return response.json();
-}
-
-function extractFigmaFrames(document) {
-  const frames = [];
-  
-  const traverse = (node) => {
-    if (node.type === 'FRAME' || node.type === 'COMPONENT') {
-      frames.push({
-        id: node.id,
-        name: node.name,
-        type: node.type
-      });
-    }
-    if (node.children) {
-      node.children.forEach(traverse);
-    }
-  };
-
-  traverse(document);
-  return frames;
-}
-
-async function getFigmaImageUrls(fileKey, frames) {
-  const token = "figd_00LP2oP9Fqfd0PY0alm9L9tsjlC85pn8m5KEeXMn";
-  const frameIds = frames.map(frame => frame.id).join(',');
-  
-  const response = await fetch(
-    `https://api.figma.com/v1/images/${fileKey}?ids=${frameIds}&format=png&scale=2`,
-    {
-      headers: {
-        'X-Figma-Token': token,
-        'User-Agent': 'Digital-Studio-VM/1.0'
-      }
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to get image URLs: ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  return data.images || {};
-}
-
-async function downloadFigmaImages(imageUrls) {
-  const processedImages = [];
-
-  for (const [frameId, imageUrl] of Object.entries(imageUrls)) {
-    try {
-      const response = await fetch(imageUrl);
-      const buffer = await response.arrayBuffer();
-      const base64Data = Buffer.from(buffer).toString('base64');
-      
-      processedImages.push({
-        id: frameId,
-        data: base64Data,
-        mimeType: 'image/png'
-      });
-    } catch (error) {
-      console.warn(`Failed to download image for frame ${frameId}:`, error.message);
-    }
-  }
-
-  return processedImages;
-}
-
-// Enhanced API helper functions
-async function handleAdvancedCodeGeneration(req, res, data) {
-  // Advanced code generation logic
-  res.json({
-    success: true,
-    message: 'Advanced code generation completed',
-    timestamp: new Date().toISOString()
-  });
-}
-
-async function handleCodeOptimization(req, res, data) {
-  // Code optimization logic
-  res.json({
-    success: true,
-    message: 'Code optimization completed',
-    timestamp: new Date().toISOString()
-  });
-}
-
-async function handleComponentAnalysis(req, res, data) {
-  // Component analysis logic
-  res.json({
-    success: true,
-    message: 'Component analysis completed',
-    timestamp: new Date().toISOString()
-  });
-} 
+    const indexHtml = `
