@@ -358,7 +358,7 @@ Generated on: ${new Date().toISOString()}
         };
 
         // Create a ZIP file
-        const zip = new JSZip();
+        const zip = new window.JSZip();
         
         Object.entries(projectStructure).forEach(([path, content]) => {
             zip.file(path, content);
