@@ -4,96 +4,96 @@
   "installCommand": "npm install",
   "framework": "vite",
   "functions": {
-    "api/unified-api.js": {
+    "backend/api/unified-api.js": {
       "maxDuration": 60
     },
-    "api/projects.js": {
+    "backend/api/projects.js": {
       "maxDuration": 30
     },
-    "api/health.js": {
+    "backend/api/health.js": {
       "maxDuration": 10
     }
   },
   "rewrites": [
     {
       "source": "/api/health",
-      "destination": "/api/health.js"
+      "destination": "/backend/api/health.js"
     },
     {
       "source": "/api/generate-code",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/projects",
-      "destination": "/api/projects.js"
+      "destination": "/backend/api/projects.js"
     },
     {
       "source": "/api/import-figma",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/generate-native-code",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/live-preview",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/generate-mcp",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/generate-android",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/download-zip",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-api",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-figma-integration",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-code-generator",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/enhanced-live-preview",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/evaluator-agents",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/mcp-server",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/preview-config",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/status",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/analyze-prompt",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/generate-from-text",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/api/github-export",
-      "destination": "/api/unified-api.js"
+      "destination": "/backend/api/unified-api.js"
     },
     {
       "source": "/(.*)",
