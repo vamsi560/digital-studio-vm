@@ -257,6 +257,32 @@ ${baseCSS}`;
   return baseCSS;
 }
 
+// Helper: generate code with Gemini using images and options
+async function generateWithGemini(images, options) {
+  const {
+    platform = 'web',
+    framework = 'React',
+    styling = 'Tailwind CSS',
+    architecture = 'Component Based',
+    customLogic = '',
+    routing = ''
+  } = options || {};
+
+  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.\n\nRequirements:\n\n- Styling: ${styling}\n\n- Architecture: ${architecture}\n\n- Custom Logic: ${customLogic || 'None'}\n\n- Routing: ${routing || 'None'}\n\n\nProvide production-ready, accessible, responsive code. Include necessary imports. Return only the component code.`;
+
+  const imageParts = (images || []).map(img => ({
+    inlineData: {
+      data: img.data,
+      mimeType: img.mimeType || 'image/png'
+    }
+  }));
+
+  const result = await model.generateContent([prompt, ...imageParts]);
+  return result.response.text();
+}
+
 // Update the handleCodeGeneration function
 async function handleCodeGeneration(req, res) {
   try {
