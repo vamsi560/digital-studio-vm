@@ -238,15 +238,39 @@ const AndroidLabFlow = ({ onNavigate }) => {
     };
 
     const handleDownload = () => {
-        if (!generatedProject) return;
+        if (!generatedProject || !generatedProject.projectFiles) return;
         
-        const element = document.createElement('a');
-        const file = new Blob([generatedCode], { type: 'text/plain' });
-        element.href = URL.createObjectURL(file);
-        element.download = 'android-project.zip';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+        // Import JSZip dynamically
+        import('jszip').then(JSZip => {
+            const zip = new JSZip.default();
+            
+            // Add all project files to the ZIP
+            Object.entries(generatedProject.projectFiles).forEach(([filePath, content]) => {
+                zip.file(filePath, content);
+            });
+            
+            // Generate ZIP and create download link
+            zip.generateAsync({ type: "blob" }).then(content => {
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'digital-studio-android-project.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }).catch(error => {
+            console.error('Error creating ZIP:', error);
+            // Fallback to single file download
+            const element = document.createElement('a');
+            const file = new Blob([generatedCode], { type: 'text/plain' });
+            element.href = URL.createObjectURL(file);
+            element.download = 'android-project.js';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
     };
 
     // GitHub connection functions

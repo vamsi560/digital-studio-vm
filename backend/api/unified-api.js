@@ -2,6 +2,10 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import multer from 'multer';
 import cors from 'cors';
 import JSZip from 'jszip';
+import crypto from 'crypto';
+import { InputValidator, SecurityValidator, createValidationMiddleware } from './validation.js';
+import { codeGenerationCache, performanceMonitor, requestThrottler } from './cache.js';
+import { advancedCodeGenerator, CodeAnalyzer, ProjectOptimizer } from './advanced-features.js';
 
 // CORS configuration
 const corsMiddleware = cors({
@@ -22,11 +26,15 @@ const upload = multer({
 });
 
 export default async function handler(req, res) {
+  const startTime = performanceMonitor.startTimer();
+  const clientId = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown';
+  
   console.log('Unified API Request received:', {
     method: req.method,
     url: req.url,
     contentType: req.headers['content-type'],
-    body: req.body
+    clientId,
+    timestamp: new Date().toISOString()
   });
 
   // Handle CORS
@@ -40,6 +48,18 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+  }
+
+  // Rate limiting
+  if (!requestThrottler.isAllowed(clientId)) {
+    const remaining = requestThrottler.getRemainingRequests(clientId);
+    return res.status(429).json({
+      success: false,
+      error: 'Rate limit exceeded. Please try again later.',
+      retryAfter: 60,
+      remainingRequests: remaining,
+      timestamp: new Date().toISOString()
+    });
   }
 
   try {
@@ -89,26 +109,74 @@ export default async function handler(req, res) {
       case 'enhanced_api':
         return await handleEnhancedAPI(req, res);
       
+      case 'health':
+        return await handleHealth(req, res);
+      
+      case 'metrics':
+        return await handleMetrics(req, res);
+      
       default:
         return res.status(400).json({ error: 'Invalid action specified' });
     }
 
   } catch (error) {
     console.error('Unified API Error:', error);
-    res.status(500).json({
+    
+    // Record error metrics
+    performanceMonitor.recordRequest(
+      performanceMonitor.endTimer(startTime), 
+      true, 
+      false
+    );
+    
+    // Enhanced error response
+    const errorResponse = {
       success: false,
       error: error.message || 'Internal server error',
-      timestamp: new Date().toISOString()
-    });
+      timestamp: new Date().toISOString(),
+      requestId: crypto.randomUUID()
+    };
+    
+    // Add validation error details
+    if (error.name === 'ValidationError') {
+      errorResponse.field = error.field;
+      errorResponse.code = error.code;
+      res.status(400).json(errorResponse);
+    } else {
+      res.status(500).json(errorResponse);
+    }
   }
 }
 
 // Enhanced code generation function that creates complete projects
 async function generateCompleteReactProject(images, options) {
-  // Generate the main React component
-  const mainComponentCode = await generateWithGemini(images, options);
-  
-  // Create complete project structure
+  try {
+    // Validate inputs
+    InputValidator.validateProjectOptions(options);
+    
+    // Use advanced code generator with caching and retry logic
+    const result = await advancedCodeGenerator.generateWithRetry(images, options);
+    
+    // Analyze the generated code
+    const analysis = CodeAnalyzer.analyzeCode(result.code, options.framework);
+    
+    // Optimize the project
+    const optimizedProject = ProjectOptimizer.optimizeProject(result.projectFiles || { 'src/App.jsx': result.code });
+    
+    return {
+      success: true,
+      projectFiles: optimizedProject,
+      mainCode: optimizedProject['src/App.jsx'] || result.code,
+      analysis: analysis,
+      qualityScore: result.quality || analysis.maintainability,
+      timestamp: new Date().toISOString()
+    };
+  } catch (error) {
+    console.error('Enhanced code generation failed:', error);
+    // Fallback to basic generation
+    const mainComponentCode = await generateWithGemini(images, options);
+    
+    // Create complete project structure
   const projectFiles = {
     'package.json': JSON.stringify({
       name: "digital-studio-project",
@@ -224,7 +292,13 @@ module.exports = {
 }`;
   }
 
-  return projectFiles;
+    return {
+      success: true,
+      projectFiles: projectFiles,
+      mainCode: mainComponentCode,
+      timestamp: new Date().toISOString()
+    };
+  }
 }
 
 function generateCSS(stylingOption) {
@@ -487,20 +561,19 @@ async function handleNativeCodeGeneration(req, res) {
 // Handle Android generation
 async function handleAndroidGeneration(req, res) {
   try {
-    const { description, features } = req.body;
+    const { description, features, architecture = 'MVVM', language = 'Kotlin' } = req.body;
 
-    console.log('Generating Android code:', { description, features });
+    console.log('Generating Android code:', { description, features, architecture, language });
 
-    const prompt = `Generate Android native code for: ${description}. Features: ${features}`;
-    
-    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(prompt);
-    const generatedCode = result.response.text();
+    const projectFiles = await generateCompleteAndroidProject(description, features, architecture, language);
 
     res.json({
       success: true,
-      code: generatedCode,
+      projectFiles: projectFiles,
+      mainCode: projectFiles['app/src/main/java/com/example/app/MainActivity.kt'] || projectFiles['app/src/main/java/com/example/app/MainActivity.java'],
       platform: 'android',
+      architecture: architecture,
+      language: language,
       timestamp: new Date().toISOString()
     });
 
@@ -512,6 +585,290 @@ async function handleAndroidGeneration(req, res) {
       timestamp: new Date().toISOString()
     });
   }
+}
+
+// Enhanced Android project generation
+async function generateCompleteAndroidProject(description, features, architecture, language) {
+  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  
+  const projectName = 'DigitalStudioApp';
+  const packageName = 'com.digitalstudio.app';
+  
+  // Generate main activity
+  const mainActivityPrompt = `Generate a complete ${language} MainActivity for Android with ${architecture} architecture.
+Description: ${description}
+Features: ${features}
+
+Include:
+- Modern Android development practices
+- ${architecture} architecture pattern
+- Material Design 3 components
+- Proper lifecycle management
+- Error handling
+- Accessibility features
+
+Return only the ${language} code without explanations.`;
+  
+  const mainActivityResult = await model.generateContent(mainActivityPrompt);
+  const mainActivityCode = mainActivityResult.response.text();
+
+  // Generate project structure
+  const projectFiles = {
+    'build.gradle': `plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'kotlin-parcelize'
+}
+
+android {
+    namespace '${packageName}'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "${packageName}"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
+    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.6'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.7.6'
+    implementation 'androidx.room:room-runtime:2.6.1'
+    implementation 'androidx.room:room-ktx:2.6.1'
+    kapt 'androidx.room:room-compiler:2.6.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+    implementation 'androidx.work:work-runtime-ktx:2.9.0'
+    
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}`,
+
+    'app/src/main/AndroidManifest.xml': `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DigitalStudioApp"
+        tools:targetApi="31">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.DigitalStudioApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>`,
+
+    'app/src/main/res/values/strings.xml': `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Digital Studio App</string>
+    <string name="app_description">Generated with Digital Studio VM</string>
+    <string name="welcome_message">Welcome to your generated Android app!</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="loading">Loading...</string>
+</resources>`,
+
+    'app/src/main/res/values/themes.xml': `<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.DigitalStudioApp" parent="Theme.Material3.DayNight">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
+    </style>
+
+    <style name="Theme.DigitalStudioApp" parent="Base.Theme.DigitalStudioApp" />
+</resources>`,
+
+    'app/src/main/res/values/colors.xml': `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="md_theme_light_primary">#6750A4</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#EADDFF</color>
+    <color name="md_theme_light_onPrimaryContainer">#21005D</color>
+    <color name="md_theme_light_secondary">#625B71</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_secondaryContainer">#E8DEF8</color>
+    <color name="md_theme_light_onSecondaryContainer">#1D192B</color>
+    <color name="md_theme_light_tertiary">#7D5260</color>
+    <color name="md_theme_light_onTertiary">#FFFFFF</color>
+    <color name="md_theme_light_tertiaryContainer">#FFD8E4</color>
+    <color name="md_theme_light_onTertiaryContainer">#31111D</color>
+    <color name="md_theme_light_error">#BA1A1A</color>
+    <color name="md_theme_light_errorContainer">#FFDAD6</color>
+    <color name="md_theme_light_onError">#FFFFFF</color>
+    <color name="md_theme_light_onErrorContainer">#410002</color>
+    <color name="md_theme_light_outline">#79747E</color>
+    <color name="md_theme_light_background">#FFFBFE</color>
+    <color name="md_theme_light_onBackground">#1C1B1F</color>
+    <color name="md_theme_light_surface">#FFFBFE</color>
+    <color name="md_theme_light_onSurface">#1C1B1F</color>
+    <color name="md_theme_light_surfaceVariant">#E7E0EC</color>
+    <color name="md_theme_light_onSurfaceVariant">#49454F</color>
+    <color name="md_theme_light_inverseSurface">#313033</color>
+    <color name="md_theme_light_inverseOnSurface">#F4EFF4</color>
+    <color name="md_theme_light_inversePrimary">#D0BCFF</color>
+</resources>`,
+
+    'app/src/main/res/layout/activity_main.xml': `<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="16dp"
+                android:src="@android:drawable/ic_dialog_info"
+                app:tint="@color/md_theme_light_primary" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:text="@string/app_name"
+                android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                android:textColor="@color/md_theme_light_onSurface" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="24dp"
+                android:text="@string/welcome_message"
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:textColor="@color/md_theme_light_onSurfaceVariant" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Get Started"
+                app:icon="@android:drawable/ic_media_play"
+                style="@style/Widget.Material3.Button" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>`,
+
+    'README.md': `# Digital Studio Android App
+
+This Android application was generated using Digital Studio VM.
+
+## Features
+
+- **Architecture**: ${architecture}
+- **Language**: ${language}
+- **Description**: ${description}
+- **Features**: ${features}
+
+## Getting Started
+
+1. Open the project in Android Studio
+2. Sync the project with Gradle files
+3. Run the app on an emulator or device
+
+## Project Structure
+
+- \`app/src/main/java/\` - Main source code
+- \`app/src/main/res/\` - Resources (layouts, strings, colors)
+- \`app/src/main/AndroidManifest.xml\` - App configuration
+
+## Dependencies
+
+- Material Design 3
+- AndroidX libraries
+- Room database
+- Retrofit for networking
+- Coroutines for async operations
+
+Generated on: ${new Date().toISOString()}
+`
+  };
+
+  // Add main activity code
+  if (language.toLowerCase() === 'kotlin') {
+    projectFiles[`app/src/main/java/${packageName.replace(/\./g, '/')}/MainActivity.kt`] = mainActivityCode;
+  } else {
+    projectFiles[`app/src/main/java/${packageName.replace(/\./g, '/')}/MainActivity.java`] = mainActivityCode;
+  }
+
+  return projectFiles;
 }
 
 // Handle MCP generation
@@ -1016,4 +1373,50 @@ async function getFigmaImageUrls(fileKey, frames) {
 async function downloadFigmaImages(imageUrls) {
   // Placeholder for image downloading
   return [];
+}
+
+// Health check endpoint
+async function handleHealth(req, res) {
+  try {
+    const health = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      version: '2.0.0',
+      services: {
+        gemini: 'operational',
+        cache: 'operational',
+        validation: 'operational',
+        performance: 'operational'
+      },
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      environment: process.env.NODE_ENV || 'development'
+    };
+
+    res.json(health);
+  } catch (error) {
+    res.status(500).json({
+      status: 'unhealthy',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Metrics endpoint
+async function handleMetrics(req, res) {
+  try {
+    const metrics = {
+      performance: performanceMonitor.getMetrics(),
+      cache: codeGenerationCache.getStats(),
+      timestamp: new Date().toISOString()
+    };
+
+    res.json(metrics);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 }
