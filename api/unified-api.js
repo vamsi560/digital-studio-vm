@@ -21,42 +21,6 @@ const upload = multer({
   }
 });
 
-// Generate code using Gemini AI
-async function generateWithGemini(images, options) {
-  try {
-    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    const imageParts = images.map(img => ({
-      inlineData: {
-        data: img.data,
-        mimeType: img.mimeType || 'image/png'
-      }
-    }));
-
-    const prompt = `
-Generate a complete ${options.framework} component based on the provided images.
-
-Requirements:
-- Platform: ${options.platform}
-- Framework: ${options.framework}
-- Styling: ${options.styling}
-- Architecture: ${options.architecture}
-- Custom Logic: ${options.customLogic || 'None'}
-- Routing: ${options.routing || 'None'}
-
-Create a pixel-perfect implementation that matches the provided designs.
-Include proper error handling, accessibility, and responsive design.
-Return only the complete component code without explanations.
-    `;
-
-    const result = await model.generateContent([prompt, ...imageParts]);
-    return result.response.text();
-  } catch (error) {
-    console.error('Gemini generation error:', error);
-    throw new Error(`Failed to generate code: ${error.message}`);
-  }
-}
-
 export default async function handler(req, res) {
   console.log('Unified API Request received:', {
     method: req.method,
@@ -291,6 +255,32 @@ ${baseCSS}`;
   }
 
   return baseCSS;
+}
+
+// Helper: generate code with Gemini using images and options
+async function generateWithGemini(images, options) {
+  const {
+    platform = 'web',
+    framework = 'React',
+    styling = 'Tailwind CSS',
+    architecture = 'Component Based',
+    customLogic = '',
+    routing = ''
+  } = options || {};
+
+  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.\n\nRequirements:\n\n- Styling: ${styling}\n\n- Architecture: ${architecture}\n\n- Custom Logic: ${customLogic || 'None'}\n\n- Routing: ${routing || 'None'}\n\n\nProvide production-ready, accessible, responsive code. Include necessary imports. Return only the component code.`;
+
+  const imageParts = (images || []).map(img => ({
+    inlineData: {
+      data: img.data,
+      mimeType: img.mimeType || 'image/png'
+    }
+  }));
+
+  const result = await model.generateContent([prompt, ...imageParts]);
+  return result.response.text();
 }
 
 // Update the handleCodeGeneration function
