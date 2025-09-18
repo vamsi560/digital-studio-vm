@@ -360,92 +360,68 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             </div>
                         </button>
                         <div className="space-y-0">
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-gray-200 to-gray-400 bg-clip-text text-transparent">Android Studio</h1>
+                            <h1 className="text-xl font-bold text-white">VM Digital Studio</h1>
                         </div>
                     </div>
                     
                     {/* Enhanced Configuration Cards with Better Visual Hierarchy */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3">
                         {/* Language Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[200px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                            <div className="flex items-center space-x-2 mb-3">
-                                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Language</h3>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 min-w-[160px]">
+                            <h3 className="text-sm font-bold text-white mb-3">Choose Language</h3>
+                            <div className="grid grid-cols-2 gap-2">
                                 {['Kotlin', 'Java'].map((option) => (
-                                    <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus-within:bg-gray-700/50">
-                                        <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
-                                        <div className="relative">
-                                            <input
-                                                type="radio"
-                                                name="language"
-                                                value={option}
-                                                checked={language === option}
-                                                onChange={(e) => setLanguage(e.target.value)}
-                                                className="w-4 h-4 text-green-500 bg-gray-700 border-gray-500 focus:ring-green-400 focus:ring-2 rounded-full cursor-pointer"
-                                            />
-                                            {language === option && (
-                                                <div className="absolute inset-0 w-4 h-4 bg-green-500 rounded-full animate-ping opacity-20"></div>
-                                            )}
-                                        </div>
-                                    </label>
+                                    <button
+                                        key={option}
+                                        onClick={() => setLanguage(option)}
+                                        className={`p-2 rounded text-xs font-medium transition-all duration-200 ${
+                                            language === option
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-700 text-white border border-gray-500 hover:bg-gray-600'
+                                        }`}
+                                    >
+                                        {option}
+                                    </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* Architecture Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[200px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                            <div className="flex items-center space-x-2 mb-3">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">Architecture</h3>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 min-w-[160px]">
+                            <h3 className="text-sm font-bold text-white mb-3">Choose Architecture</h3>
+                            <div className="grid grid-cols-2 gap-2">
                                 {['MVVM', 'MVP', 'MVC', 'Clean'].map((option) => (
-                                    <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus-within:bg-gray-700/50">
-                                        <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
-                                        <div className="relative">
-                                            <input
-                                                type="radio"
-                                                name="architecture"
-                                                value={option}
-                                                checked={architecture === option}
-                                                onChange={(e) => setArchitecture(e.target.value)}
-                                                className="w-4 h-4 text-blue-500 bg-gray-700 border-gray-500 focus:ring-blue-400 focus:ring-2 rounded-full cursor-pointer"
-                                            />
-                                            {architecture === option && (
-                                                <div className="absolute inset-0 w-4 h-4 bg-blue-500 rounded-full animate-ping opacity-20"></div>
-                                            )}
-                                        </div>
-                                    </label>
+                                    <button
+                                        key={option}
+                                        onClick={() => setArchitecture(option)}
+                                        className={`p-2 rounded text-xs font-medium transition-all duration-200 ${
+                                            architecture === option
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-700 text-white border border-gray-500 hover:bg-gray-600'
+                                        }`}
+                                    >
+                                        {option}
+                                    </button>
                                 ))}
                             </div>
                         </div>
 
                         {/* UI Framework Selection */}
-                        <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-4 min-w-[200px] shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-300">
-                            <div className="flex items-center space-x-2 mb-3">
-                                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                                <h3 className="text-xs font-bold text-gray-300 uppercase tracking-wider">UI Framework</h3>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 min-w-[160px]">
+                            <h3 className="text-sm font-bold text-white mb-3">Choose UI Framework</h3>
+                            <div className="grid grid-cols-2 gap-2">
                                 {['Jetpack Compose', 'XML Layouts', 'Flutter', 'React Native'].map((option) => (
-                                    <label key={option} className="flex items-center justify-between cursor-pointer group p-2 rounded-lg hover:bg-gray-700/50 transition-all duration-200 focus-within:bg-gray-700/50">
-                                        <span className="text-gray-300 text-sm font-medium group-hover:text-gray-200 transition-colors">{option}</span>
-                                        <div className="relative">
-                                            <input
-                                                type="radio"
-                                                name="uiFramework"
-                                                value={option}
-                                                checked={uiFramework === option}
-                                                onChange={(e) => setUiFramework(e.target.value)}
-                                                className="w-4 h-4 text-purple-500 bg-gray-700 border-gray-500 focus:ring-purple-400 focus:ring-2 rounded-full cursor-pointer"
-                                            />
-                                            {uiFramework === option && (
-                                                <div className="absolute inset-0 w-4 h-4 bg-purple-500 rounded-full animate-ping opacity-20"></div>
-                                            )}
-                                        </div>
-                                    </label>
+                                    <button
+                                        key={option}
+                                        onClick={() => setUiFramework(option)}
+                                        className={`p-2 rounded text-xs font-medium transition-all duration-200 ${
+                                            uiFramework === option
+                                                ? 'bg-blue-500 text-white'
+                                                : 'bg-gray-700 text-white border border-gray-500 hover:bg-gray-600'
+                                        }`}
+                                    >
+                                        {option}
+                                    </button>
                                 ))}
                             </div>
                         </div>
@@ -498,7 +474,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
                         <div className="space-y-4">
                             <button 
                                 onClick={() => setShowFigmaModal(true)}
-                                className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-orange-400/50"
+                                className="w-full flex items-center space-x-3 p-3 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-all duration-300"
                             >
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -508,15 +484,16 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             
                             <button 
                                 onClick={() => setShowGitHubModal(true)}
-                                className="w-full flex items-center space-x-3 p-3 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-gray-400/50"
+                                className="w-full flex items-center space-x-3 p-3 bg-gray-700 hover:bg-gray-600 text-white border border-gray-500 rounded-lg transition-all duration-300"
                             >
-                                <svg className="w-5 h-5 text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                 </svg>
-                                <span className="text-gray-300 font-medium text-sm">Import from GitHub</span>
+                                <span className="text-white font-medium text-sm">Import from GitHub</span>
                             </button>
-                            
-                            <div className="mt-6">
+                        </div>
+
+                        <div className="mt-6">
                                 <label className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-green-400/50 ${
                                     isDragging 
                                         ? 'border-green-400 bg-green-400/10' 
@@ -552,29 +529,47 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             </div>
                         </div>
                     </div>
-                </div>
 
                 {/* Enhanced Main Area - Screen Order Display */}
                 <div className="flex-1 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                            <h3 className="text-lg font-bold text-gray-200">Android Screen Flow Preview</h3>
+                            <h3 className="text-lg font-bold text-white">Android Screen Flow Preview</h3>
                         </div>
-                                           {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
-                       <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-gray-600/50 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 transition-all duration-300 hover:border-gray-500/50">
-                           <div className="text-center">
-                               <div className="w-16 h-16 bg-gradient-to-br from-gray-600 to-gray-500 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                   <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                   </svg>
-                               </div>
-                               <p className="text-gray-400 font-medium mb-1">Upload images to see Android screen flow</p>
-                               <p className="text-gray-500 text-sm">Drag and drop your screens here</p>
-                           </div>
-                       </div>
-                   ) : (
-                       <div className="space-y-6">
+                        
+                        {/* Progress Indicator */}
+                        <div className="flex items-center space-x-2 mb-4">
+                            <div className="flex space-x-2">
+                                {[1, 2, 3, 4].map((step) => (
+                                    <div
+                                        key={step}
+                                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                                            step === 1
+                                                ? 'bg-teal-500 text-white'
+                                                : 'bg-gray-600 text-white'
+                                        }`}
+                                    >
+                                        {step}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
+                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-blue-300 rounded-xl bg-gray-800">
+                                <div className="text-center">
+                                    <div className="w-16 h-16 bg-gray-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
+                                    </div>
+                                    <p className="text-white font-medium mb-1">Upload images to see Android screen flow</p>
+                                    <p className="text-gray-400 text-sm">Drag screens from sidebar to arrange order</p>
+                                </div>
+                            </div>
+
+                        ) : (
+                           <div className="space-y-6">
                            {/* Uploaded Screens Tray */}
                            {uploadedScreens.length > 0 && (
                                <div>
@@ -665,7 +660,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
                         {/* Enhanced Submit Button */}
                         <div className="absolute bottom-6 right-6">
                             {isGenerating ? (
-                                <div className="bg-gradient-to-r from-green-600 to-blue-600 text-white font-bold py-3 px-6 rounded-lg shadow-xl">
+                                <div className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg">
                                     <div className="flex items-center space-x-2">
                                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                                         <span>{workflowStatus.text || 'Generating...'}</span>
@@ -674,16 +669,13 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             ) : (
                                 <button
                                     onClick={handleGenerateCode}
-                                    disabled={screenOrder.filter(Boolean).length === 0}
-                                    className="group bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-500 hover:to-blue-500 disabled:from-gray-700 disabled:to-gray-600 disabled:text-gray-500 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 disabled:transform-none disabled:hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-green-400/50"
+                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 flex items-center space-x-2"
                                     aria-label="Generate Android code"
                                 >
-                                    <div className="flex items-center space-x-2">
-                                        <span>Generate Android Code</span>
-                                        <svg className="w-4 h-4 group-hover:transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                        </svg>
-                                    </div>
+                                    <span>Generate Android Code</span>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                    </svg>
                                 </button>
                             )}
                         </div>
