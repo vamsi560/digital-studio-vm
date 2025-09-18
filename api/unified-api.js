@@ -21,42 +21,6 @@ const upload = multer({
   }
 });
 
-// Generate code using Gemini AI
-async function generateWithGemini(images, options) {
-  try {
-    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    const imageParts = images.map(img => ({
-      inlineData: {
-        data: img.data,
-        mimeType: img.mimeType || 'image/png'
-      }
-    }));
-
-    const prompt = `
-Generate a complete ${options.framework} component based on the provided images.
-
-Requirements:
-- Platform: ${options.platform}
-- Framework: ${options.framework}
-- Styling: ${options.styling}
-- Architecture: ${options.architecture}
-- Custom Logic: ${options.customLogic || 'None'}
-- Routing: ${options.routing || 'None'}
-
-Create a pixel-perfect implementation that matches the provided designs.
-Include proper error handling, accessibility, and responsive design.
-Return only the complete component code without explanations.
-    `;
-
-    const result = await model.generateContent([prompt, ...imageParts]);
-    return result.response.text();
-  } catch (error) {
-    console.error('Gemini generation error:', error);
-    throw new Error(`Failed to generate code: ${error.message}`);
-  }
-}
-
 export default async function handler(req, res) {
   console.log('Unified API Request received:', {
     method: req.method,
@@ -291,6 +255,32 @@ ${baseCSS}`;
   }
 
   return baseCSS;
+}
+
+// Helper: generate code with Gemini using images and options
+async function generateWithGemini(images, options) {
+  const {
+    platform = 'web',
+    framework = 'React',
+    styling = 'Tailwind CSS',
+    architecture = 'Component Based',
+    customLogic = '',
+    routing = ''
+  } = options || {};
+
+  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.\n\nRequirements:\n\n- Styling: ${styling}\n\n- Architecture: ${architecture}\n\n- Custom Logic: ${customLogic || 'None'}\n\n- Routing: ${routing || 'None'}\n\n\nProvide production-ready, accessible, responsive code. Include necessary imports. Return only the component code.`;
+
+  const imageParts = (images || []).map(img => ({
+    inlineData: {
+      data: img.data,
+      mimeType: img.mimeType || 'image/png'
+    }
+  }));
+
+  const result = await model.generateContent([prompt, ...imageParts]);
+  return result.response.text();
 }
 
 // Update the handleCodeGeneration function
@@ -805,4 +795,225 @@ Generated on: ${new Date().toISOString()}
     }
 
     // Add index.html
-    const indexHtml = `
+    const indexHtml = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${projectName}</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>`;
+
+    zip.file("index.html", indexHtml);
+
+    // Generate ZIP buffer
+    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${projectName}.zip"`);
+    res.send(zipBuffer);
+
+  } catch (error) {
+    console.error('GitHub export error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Handle download zip
+async function handleDownloadZip(req, res) {
+  try {
+    const { projectData, projectName } = req.body;
+
+    if (!projectData || !projectName) {
+      return res.status(400).json({
+        success: false,
+        error: 'Project data and name are required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Create a ZIP file with the project structure
+    const zip = new JSZip();
+
+    // Add package.json
+    const packageJson = {
+      name: projectName.toLowerCase().replace(/\s+/g, '-'),
+      version: "1.0.0",
+      private: true,
+      dependencies: {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+      },
+      scripts: {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test"
+      }
+    };
+
+    zip.file("package.json", JSON.stringify(packageJson, null, 2));
+
+    // Add source files
+    if (projectData.mainCode) {
+      zip.file("src/App.jsx", projectData.mainCode);
+    }
+
+    // Generate ZIP buffer
+    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' });
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${projectName}.zip"`);
+    res.send(zipBuffer);
+
+  } catch (error) {
+    console.error('Download zip error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Handle live preview
+async function handleLivePreview(req, res) {
+  try {
+    const { code, framework } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Generate preview URL or return preview data
+    res.json({
+      success: true,
+      previewUrl: `data:text/html;base64,${Buffer.from(code).toString('base64')}`,
+      framework: framework || 'React',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Live preview error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Handle code evaluation
+async function handleCodeEvaluation(req, res) {
+  try {
+    const { code, framework } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        success: false,
+        error: 'Code is required',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const evaluationPrompt = `
+Evaluate the quality of the following ${framework} code:
+
+${code}
+
+Provide a detailed evaluation covering:
+1. Code Quality (1-10)
+2. Performance (1-10)
+3. Accessibility (1-10)
+4. Best Practices (1-10)
+5. Security (1-10)
+6. Overall Score (1-10)
+
+Return the evaluation as JSON format.
+    `;
+
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const result = await model.generateContent(evaluationPrompt);
+    const evaluation = result.response.text();
+
+    res.json({
+      success: true,
+      evaluation,
+      framework: framework || 'React',
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Code evaluation error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Handle enhanced API
+async function handleEnhancedAPI(req, res) {
+  try {
+    const { action, ...data } = req.body;
+
+    res.json({
+      success: true,
+      message: 'Enhanced API endpoint',
+      action,
+      data,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Enhanced API error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error',
+      timestamp: new Date().toISOString()
+    });
+  }
+}
+
+// Figma helper functions
+function extractFigmaFileKey(url) {
+  const match = url.match(/figma\.com\/file\/([a-zA-Z0-9]+)/);
+  return match ? match[1] : null;
+}
+
+async function getFigmaFileData(fileKey) {
+  // Placeholder for Figma API integration
+  return {
+    document: {
+      children: []
+    }
+  };
+}
+
+function extractFigmaFrames(document) {
+  // Placeholder for frame extraction
+  return [];
+}
+
+async function getFigmaImageUrls(fileKey, frames) {
+  // Placeholder for image URL generation
+  return [];
+}
+
+async function downloadFigmaImages(imageUrls) {
+  // Placeholder for image downloading
+  return [];
+}

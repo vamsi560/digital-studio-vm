@@ -20,6 +20,7 @@ const PrototypeLabFlow = ({ onNavigate }) => {
     const [generatedProject, setGeneratedProject] = useState(null);
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(0);
     const [workflowStatus, setWorkflowStatus] = useState({});
+    const [selectedFile, setSelectedFile] = useState('src/App.jsx');
     
     // New state for image expansion and session management
     const [expandedImage, setExpandedImage] = useState(null);
@@ -272,15 +273,39 @@ const PrototypeLabFlow = ({ onNavigate }) => {
     };
 
     const handleDownload = () => {
-        if (!generatedProject) return;
+        if (!generatedProject || !generatedProject.projectFiles) return;
         
-        const element = document.createElement('a');
-        const file = new Blob([generatedCode], { type: 'text/plain' });
-        element.href = URL.createObjectURL(file);
-        element.download = 'prototype-project.js';
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
+        // Import JSZip dynamically
+        import('jszip').then(JSZip => {
+            const zip = new JSZip.default();
+            
+            // Add all project files to the ZIP
+            Object.entries(generatedProject.projectFiles).forEach(([filePath, content]) => {
+                zip.file(filePath, content);
+            });
+            
+            // Generate ZIP and create download link
+            zip.generateAsync({ type: "blob" }).then(content => {
+                const url = URL.createObjectURL(content);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'digital-studio-project.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }).catch(error => {
+            console.error('Error creating ZIP:', error);
+            // Fallback to single file download
+            const element = document.createElement('a');
+            const file = new Blob([generatedCode], { type: 'text/plain' });
+            element.href = URL.createObjectURL(file);
+            element.download = 'prototype-project.js';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        });
     };
 
     // Open in VS Code function
@@ -1120,30 +1145,43 @@ Generated on: ${new Date().toISOString()}
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-bold text-gray-200">Generated Code</h3>
-                            <div className="flex space-x-2">
-                                <button className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300">
-                                    App.jsx
-                                </button>
-                                <button className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300">
-                                    Screen1.jsx
-                                </button>
-                                <button className="bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300 px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300">
-                                    App.css
-                                </button>
+                            <div className="flex space-x-2 overflow-x-auto">
+                                {generatedProject?.projectFiles ? Object.keys(generatedProject.projectFiles)
+                                    .filter(filePath => filePath.endsWith('.jsx') || filePath.endsWith('.js') || filePath.endsWith('.css') || filePath.endsWith('.json'))
+                                    .map(filePath => {
+                                        const fileName = filePath.split('/').pop();
+                                        const isActive = selectedFile === filePath;
+                                        return (
+                                            <button 
+                                                key={filePath}
+                                                onClick={() => setSelectedFile(filePath)}
+                                                className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap ${
+                                                    isActive 
+                                                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' 
+                                                        : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-300'
+                                                }`}
+                                            >
+                                                {fileName}
+                                            </button>
+                                        );
+                                    }) : (
+                                        <div className="text-gray-400 text-sm">No files available</div>
+                                    )
+                                }
                             </div>
                         </div>
-                        {generatedCode ? (
+                        {generatedProject?.projectFiles ? (
                             <div className="bg-gradient-to-br from-gray-700 to-gray-600 rounded-xl border border-gray-600/30 shadow-inner overflow-hidden">
                                 <div className="bg-gray-800 px-4 py-2 border-b border-gray-600/30">
                                     <div className="flex items-center space-x-2">
                                         <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                                         <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                                         <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                        <span className="text-gray-400 text-sm ml-2">App.jsx</span>
+                                        <span className="text-gray-400 text-sm ml-2">{selectedFile.split('/').pop()}</span>
                                     </div>
                                 </div>
                                 <pre className="p-6 text-sm text-gray-200 overflow-auto max-h-96">
-                                    <code>{generatedCode}</code>
+                                    <code>{generatedProject.projectFiles[selectedFile] || 'File not found'}</code>
                                 </pre>
                             </div>
                         ) : (
@@ -1282,7 +1320,7 @@ Generated on: ${new Date().toISOString()}
                                     </button>
                                 </div>
                                 <div className="p-4 h-full bg-white overflow-auto">
-                                    <LivePreview code={generatedCode} />
+                                    <LivePreview code={generatedProject?.projectFiles?.[selectedFile] || generatedCode} />
                                 </div>
                             </div>
                         </div>
@@ -1343,7 +1381,7 @@ Generated on: ${new Date().toISOString()}
                                             </div>
                                         </div>
                                         <div className="p-4 min-h-[400px] bg-white">
-                                            <LivePreview code={generatedCode} />
+                                            <LivePreview code={generatedProject?.projectFiles?.[selectedFile] || generatedCode} />
                                         </div>
                                     </div>
                                     <div className="text-center">
