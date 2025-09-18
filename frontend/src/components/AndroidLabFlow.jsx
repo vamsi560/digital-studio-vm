@@ -456,9 +456,9 @@ const AndroidLabFlow = ({ onNavigate }) => {
                         <div className="flex space-x-2">
                             <button 
                                 onClick={() => setCurrentScreen(1)}
-                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400/50 ${
+                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400/50 ${
                                     currentScreen === 1 
-                                        ? 'border-green-400 text-green-400 bg-green-400/10 shadow-lg shadow-green-400/20' 
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20' 
                                         : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
                                 }`}
                                 aria-label="Go to screen 1"
@@ -467,9 +467,9 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             </button>
                             <button 
                                 onClick={() => setCurrentScreen(2)}
-                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-green-400/50 ${
+                                className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center text-xs font-bold transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-400/50 ${
                                     currentScreen === 2 
-                                        ? 'border-green-400 text-green-400 bg-green-400/10 shadow-lg shadow-green-400/20' 
+                                        ? 'border-blue-400 text-blue-400 bg-blue-400/10 shadow-lg shadow-blue-400/20' 
                                         : 'border-gray-600 text-gray-600 hover:border-gray-500 hover:text-gray-500'
                                 }`}
                                 aria-label="Go to screen 2"
@@ -492,7 +492,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
                 <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-full shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center space-x-3 mb-6">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-gray-200">Import / Upload Screens</h3>
                         </div>
                         <div className="space-y-4">
@@ -558,6 +558,7 @@ const AndroidLabFlow = ({ onNavigate }) => {
                 <div className="flex-1 p-4">
                     <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
                         <div className="flex items-center space-x-3 mb-6">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-white">Android Screen Flow Preview</h3>
                         </div>
                         

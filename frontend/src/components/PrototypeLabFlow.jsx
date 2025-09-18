@@ -611,8 +611,9 @@ Generated on: ${new Date().toISOString()}
                                     radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.1) 0%, transparent 50%)`
                 }}></div>
             </div>
+            
             {/* Enhanced Top Header with Better Spacing */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-4 py-3 shadow-xl">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between w-full">
                     <div className="flex items-center space-x-4">
                         <button 
@@ -633,7 +634,7 @@ Generated on: ${new Date().toISOString()}
                     </div>
                     
                     {/* Enhanced Configuration Cards with Better Visual Hierarchy */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-4">
                         {/* Framework Selection */}
                         <div className="bg-gray-800 border border-gray-600 rounded-lg p-3 min-w-[160px]">
                             <h3 className="text-sm font-bold text-white mb-3">Choose Framework</h3>
@@ -742,18 +743,18 @@ Generated on: ${new Date().toISOString()}
             </div>
 
             {/* Enhanced Main Content Area */}
-            <div className="flex h-[calc(100vh-72px)] w-full px-4">
+            <div className="flex h-[calc(100vh-88px)] w-full px-6">
                 {/* Enhanced Left Sidebar - Uploaded Screens */}
-                <div className="w-64 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-3">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-lg p-4 h-full shadow-2xl backdrop-blur-sm flex flex-col">
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
-                            <h3 className="text-sm font-bold text-gray-200">Uploaded Screens</h3>
+                <div className="w-72 bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700/50 p-4">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-full shadow-2xl backdrop-blur-sm flex flex-col">
+                        <div className="flex items-center space-x-3 mb-6">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                            <h3 className="text-lg font-bold text-gray-200">Uploaded Screens</h3>
                         </div>
                         
                         {/* Upload Area */}
-                        <div className="mb-4">
-                            <label className={`flex items-center justify-center w-full p-3 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-blue-400/50 ${
+                        <div className="mb-6">
+                            <label className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-blue-400/50 ${
                                 isDragging
                                     ? 'border-blue-400 bg-blue-400/10'
                                     : 'border-gray-600 bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500'
@@ -763,16 +764,16 @@ Generated on: ${new Date().toISOString()}
                             onDrop={handleDrop}
                             >
                                 <div className="text-center">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2 transition-all duration-300 ${
+                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 transition-all duration-300 ${
                                         isDragging
                                             ? 'bg-blue-500 scale-110'
                                             : 'bg-gradient-to-br from-blue-500 to-purple-500'
                                     }`}>
-                                        <svg className={`w-4 h-4 text-white transition-all duration-300 ${isDragging ? 'animate-bounce' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className={`w-6 h-6 text-white transition-all duration-300 ${isDragging ? 'animate-bounce' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                         </svg>
                                     </div>
-                                    <span className="text-gray-200 font-medium text-xs block mb-1">
+                                    <span className="text-gray-200 font-medium text-sm block mb-1">
                                         {isDragging ? 'Drop files here' : 'Upload screens'}
                                     </span>
                                     <span className="text-gray-400 text-xs">Drag & drop or click</span>
@@ -788,24 +789,25 @@ Generated on: ${new Date().toISOString()}
                         </div>
 
                         {/* Import Buttons */}
-                        <div className="space-y-2 mb-4">
+                        <div className="space-y-4 mb-6">
                             <button 
                                 onClick={() => setShowFigmaModal(true)}
-                                className="w-full flex items-center space-x-2 p-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-all duration-300"
+                                className="w-full flex items-center space-x-3 p-3 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-all duration-300"
                             >
-                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                                 </svg>
-                                <span className="text-white font-medium text-xs">Import from Figma</span>
+                                <span className="text-white font-medium text-sm">Import from Figma</span>
                             </button>
+                            
                             <button 
                                 onClick={() => setShowGitHubModal(true)}
-                                className="w-full flex items-center space-x-2 p-2 bg-gray-700 hover:bg-gray-600 text-white border border-gray-500 rounded-lg transition-all duration-300"
+                                className="w-full flex items-center space-x-3 p-3 bg-gray-700 hover:bg-gray-600 text-white border border-gray-500 rounded-lg transition-all duration-300"
                             >
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                 </svg>
-                                <span className="text-white font-medium text-xs">Import from GitHub</span>
+                                <span className="text-white font-medium text-sm">Import from GitHub</span>
                             </button>
                         </div>
 
@@ -840,14 +842,15 @@ Generated on: ${new Date().toISOString()}
                 </div>
 
                 {/* Enhanced Main Area - Screen Order Display */}
-                <div className="flex-1 p-3">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-lg p-4 h-[calc(100vh-160px)] shadow-2xl backdrop-blur-sm relative w-full">
-                        <div className="flex items-center space-x-2 mb-4">
-                            <h3 className="text-sm font-bold text-white">Screen Flow Order</h3>
+                <div className="flex-1 p-4">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
+                        <div className="flex items-center space-x-3 mb-6">
+                            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                            <h3 className="text-lg font-bold text-gray-200">Screen Flow Order</h3>
                         </div>
                         
                         {/* Progress Indicator */}
-                        <div className="flex items-center space-x-2 mb-4">
+                        <div className="flex items-center space-x-2 mb-6">
                             <div className="flex space-x-2">
                                 {[1, 2, 3, 4].map((step) => (
                                     <div
@@ -922,21 +925,21 @@ Generated on: ${new Date().toISOString()}
                             </div>
                         )}
                         
-                                               {/* GitHub Connection Status */}
+                        {/* GitHub Connection Status */}
                         <div className="absolute bottom-6 left-6">
                             {!isGitHubConnected ? (
                                 <button
                                     onClick={handleGitHubConnect}
                                     className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
                                 >
-                                    <svg className="w-3 h-3 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                     </svg>
                                     <span className="text-sm">Connect GitHub</span>
                                 </button>
                             ) : (
                                 <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2">
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                     </svg>
                                     <span className="text-sm">✓ Connected</span>
@@ -945,27 +948,27 @@ Generated on: ${new Date().toISOString()}
                         </div>
 
                         {/* Enhanced Submit Button */}
-                       <div className="absolute bottom-6 right-6">
-                           {isGenerating ? (
-                               <div className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg">
-                                   <div className="flex items-center space-x-2">
-                                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                       <span>{workflowStatus.text || 'Generating...'}</span>
-                                   </div>
-                               </div>
-                           ) : (
-                               <button
-                                   onClick={handleGenerateCode}
-                                   className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 flex items-center space-x-2"
-                                   aria-label="Generate prototype code"
-                               >
-                                   <span>Generate Prototype Code</span>
-                                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                   </svg>
-                               </button>
-                           )}
-                       </div>
+                        <div className="absolute bottom-6 right-6">
+                            {isGenerating ? (
+                                <div className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg">
+                                    <div className="flex items-center space-x-2">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span>{workflowStatus.text || 'Generating...'}</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleGenerateCode}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 flex items-center space-x-2"
+                                    aria-label="Generate prototype code"
+                                >
+                                    <span>Generate Prototype Code</span>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                    </svg>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
