@@ -962,14 +962,14 @@ Generated on: ${new Date().toISOString()}
                             </ResponsiveGrid>
                         )}
                         
-                        {/* Bottom Action Bar - Aligned Buttons */}
-                        <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                        {/* Bottom Action Bar - Properly Aligned Buttons */}
+                        <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
                             {/* GitHub Connection Status */}
-                            <div>
+                            <div className="flex items-center">
                                 {!isGitHubConnected ? (
                                     <button
                                         onClick={handleGitHubConnect}
-                                        className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
+                                        className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2.5 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2 h-10"
                                     >
                                         <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
@@ -977,7 +977,7 @@ Generated on: ${new Date().toISOString()}
                                         <span className="text-sm">Connect GitHub</span>
                                     </button>
                                 ) : (
-                                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2">
+                                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-2.5 px-4 rounded-lg shadow-lg flex items-center space-x-2 h-10">
                                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                                             <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
                                         </svg>
@@ -987,21 +987,19 @@ Generated on: ${new Date().toISOString()}
                             </div>
 
                             {/* Enhanced Submit Button */}
-                            <div>
+                            <div className="flex items-center">
                                 {isGenerating ? (
-                                    <div className="bg-blue-500 text-white font-bold py-2.5 px-5 rounded-full">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                            <span>{workflowStatus.text || 'Generating...'}</span>
-                                        </div>
+                                    <div className="bg-blue-500 text-white font-bold py-2.5 px-5 rounded-lg flex items-center space-x-2 h-10">
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                        <span className="text-sm">{workflowStatus.text || 'Generating...'}</span>
                                     </div>
                                 ) : (
                                     <button
                                         onClick={handleGenerateCode}
-                                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-full transition-all duration-300 flex items-center space-x-2 border border-blue-400"
+                                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-lg transition-all duration-300 flex items-center space-x-2 border border-blue-400 h-10"
                                         aria-label="Generate prototype code"
                                     >
-                                        <span>Generate Prototype Code</span>
+                                        <span className="text-sm">Generate Prototype Code</span>
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
                                         </svg>
