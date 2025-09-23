@@ -594,27 +594,380 @@ async function generateCompleteAndroidProject(description, features, architectur
   const projectName = 'DigitalStudioApp';
   const packageName = 'com.digitalstudio.app';
   
-  // Generate main activity
-  const mainActivityPrompt = `Generate a complete ${language} MainActivity for Android with ${architecture} architecture.
+  // Enhanced Android generation with Jetpack Compose support
+  const useCompose = true; // Modern Android development uses Compose
+  
+  // Generate main activity with Jetpack Compose
+  const mainActivityPrompt = `Generate a complete ${language} MainActivity for Android using Jetpack Compose with ${architecture} architecture.
+
+REQUIREMENTS:
+- Use Jetpack Compose for UI (modern Android development)
+- Implement ${architecture} architecture pattern  
+- Include proper Material Design 3 theming
+- Add proper state management
+- Include error handling and loading states
+- Follow modern Android best practices
+- Add accessibility features
+- Include proper lifecycle management
+
 Description: ${description}
 Features: ${features}
 
-Include:
-- Modern Android development practices
-- ${architecture} architecture pattern
-- Material Design 3 components
-- Proper lifecycle management
-- Error handling
-- Accessibility features
+STRUCTURE:
+- MainActivity.kt with Compose setup
+- UI composables with Material Design 3
+- ViewModel for business logic
+- Repository pattern for data
+- Proper state management
+- Navigation if needed
 
-Return only the ${language} code without explanations.`;
+Return ONLY the complete ${language} MainActivity code with proper imports.`;
   
   const mainActivityResult = await model.generateContent(mainActivityPrompt);
   const mainActivityCode = mainActivityResult.response.text();
 
-  // Generate project structure
+  // Generate additional Compose files
+  const composeUIPrompt = `Generate Jetpack Compose UI components for: ${description}
+
+Create composable functions for:
+- Main screen UI
+- Custom components
+- Material Design 3 styling
+- Proper state handling
+- Loading and error states
+
+Return only the Kotlin Compose UI code.`;
+
+  const composeUIResult = await model.generateContent(composeUIPrompt);
+  const composeUICode = composeUIResult.response.text();
+
+  // Generate ViewModel
+  const viewModelPrompt = `Generate a ${architecture} ViewModel for: ${description}
+
+Include:
+- Proper state management with StateFlow/LiveData
+- Business logic handling
+- Error handling
+- Repository pattern integration
+- Coroutines for async operations
+
+Return only the Kotlin ViewModel code.`;
+
+  const viewModelResult = await model.generateContent(viewModelPrompt);
+  const viewModelCode = viewModelResult.response.text();
+
+  // Generate enhanced project structure with modern Android standards
   const projectFiles = {
-    'build.gradle': `plugins {
+    'build.gradle.kts': `plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("kotlin-kapt")
+    id("kotlin-parcelize")
+    id("dagger.hilt.android.plugin")
+    id("androidx.navigation.safeargs.kotlin")
+}
+
+android {
+    namespace = "${packageName}"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "${packageName}"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+    
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.8"
+    }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+}
+
+dependencies {
+    // Core Android
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    
+    // Jetpack Compose
+    implementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    
+    // Navigation
+    implementation("androidx.navigation:navigation-compose:2.7.6")
+    
+    // ViewModel & LiveData
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    
+    // Dependency Injection
+    implementation("com.google.dagger:hilt-android:2.48.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    kapt("com.google.dagger:hilt-compiler:2.48.1")
+    
+    // Networking
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    
+    // Room Database
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    
+    // Image Loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
+    
+    // DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    
+    // Work Manager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    
+    // Testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.mockito:mockito-core:5.8.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    
+    // Android Testing
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.02.00"))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    
+    // Debug
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+}`,
+
+    'app/src/main/java/com/digitalstudio/app/MainActivity.kt': mainActivityCode,
+    
+    'app/src/main/java/com/digitalstudio/app/ui/screens/MainScreen.kt': composeUICode,
+    
+    'app/src/main/java/com/digitalstudio/app/ui/viewmodel/MainViewModel.kt': viewModelCode,
+    'app/src/main/java/com/digitalstudio/app/ui/screens/MainScreen.kt': composeUICode,
+    
+    'app/src/main/java/com/digitalstudio/app/ui/viewmodel/MainViewModel.kt': viewModelCode,
+
+    'app/src/main/java/com/digitalstudio/app/ui/theme/Theme.kt': `package ${packageName}.ui.theme
+
+import android.app.Activity
+import android.os.Build
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+)
+
+@Composable
+fun DigitalStudioAppTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    dynamicColor: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
+}`,
+
+    'app/src/main/java/com/digitalstudio/app/ui/theme/Color.kt': `package ${packageName}.ui.theme
+
+import androidx.compose.ui.graphics.Color
+
+val Purple80 = Color(0xFFD0BCFF)
+val PurpleGrey80 = Color(0xFFCCC2DC)
+val Pink80 = Color(0xFFEFB8C8)
+
+val Purple40 = Color(0xFF6650a4)
+val PurpleGrey40 = Color(0xFF625b71)
+val Pink40 = Color(0xFF7D5260)`,
+
+    'app/src/main/java/com/digitalstudio/app/ui/theme/Type.kt': `package ${packageName}.ui.theme
+
+import androidx.compose.material3.Typography
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+
+val Typography = Typography(
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    )
+)`,
+
+    'app/src/main/java/com/digitalstudio/app/data/repository/Repository.kt': `package ${packageName}.data.repository
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class Repository @Inject constructor(
+    // Add data sources here (API, Database, etc.)
+) {
+    
+    fun getData(): Flow<Result<List<String>>> = flow {
+        try {
+            // Implement data fetching logic
+            emit(Result.success(listOf("Sample Data 1", "Sample Data 2")))
+        } catch (e: Exception) {
+            emit(Result.failure(e))
+        }
+    }
+}`,
+
+    'app/src/main/java/com/digitalstudio/app/di/AppModule.kt': `package ${packageName}.di
+
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import ${packageName}.data.repository.Repository
+import javax.inject.Singleton
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideRepository(): Repository {
+        return Repository()
+    }
+}`,
+
+    'app/src/main/AndroidManifest.xml': `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:name=".DigitalStudioApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DigitalStudioApp"
+        tools:targetApi="31">
+        
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.DigitalStudioApp">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>`,
+
+    'app/src/main/java/com/digitalstudio/app/DigitalStudioApplication.kt': `package ${packageName}
+
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
+
+@HiltAndroidApp
+class DigitalStudioApplication : Application() {
+    
+    override fun onCreate() {
+        super.onCreate()
+    }
+}`,
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
@@ -677,35 +1030,18 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 }`,
 
-    'app/src/main/AndroidManifest.xml': `<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    'app/src/main/java/com/digitalstudio/app/DigitalStudioApplication.kt': `package ${packageName}
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+import android.app.Application
+import dagger.hilt.android.HiltAndroidApp
 
-    <application
-        android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.DigitalStudioApp"
-        tools:targetApi="31">
-        <activity
-            android:name=".MainActivity"
-            android:exported="true"
-            android:theme="@style/Theme.DigitalStudioApp">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
-
-</manifest>`,
+@HiltAndroidApp
+class DigitalStudioApplication : Application() {
+    
+    override fun onCreate() {
+        super.onCreate()
+    }
+}`,
 
     'app/src/main/res/values/strings.xml': `<?xml version="1.0" encoding="utf-8"?>
 <resources>
@@ -714,70 +1050,167 @@ dependencies {
     <string name="welcome_message">Welcome to your generated Android app!</string>
     <string name="error_generic">Something went wrong. Please try again.</string>
     <string name="loading">Loading...</string>
+    <string name="retry">Retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
 </resources>`,
 
     'app/src/main/res/values/themes.xml': `<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.DigitalStudioApp" parent="Theme.Material3.DayNight">
-        <!-- Customize your light theme here. -->
-        <item name="colorPrimary">@color/md_theme_light_primary</item>
-        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
-        <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
-        <item name="colorOnPrimaryContainer">@color/md_theme_light_onPrimaryContainer</item>
+        <!-- Customize your app theme here -->
     </style>
 
     <style name="Theme.DigitalStudioApp" parent="Base.Theme.DigitalStudioApp" />
 </resources>`,
 
-    'app/src/main/res/values/colors.xml': `<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="md_theme_light_primary">#6750A4</color>
-    <color name="md_theme_light_onPrimary">#FFFFFF</color>
-    <color name="md_theme_light_primaryContainer">#EADDFF</color>
-    <color name="md_theme_light_onPrimaryContainer">#21005D</color>
-    <color name="md_theme_light_secondary">#625B71</color>
-    <color name="md_theme_light_onSecondary">#FFFFFF</color>
-    <color name="md_theme_light_secondaryContainer">#E8DEF8</color>
-    <color name="md_theme_light_onSecondaryContainer">#1D192B</color>
-    <color name="md_theme_light_tertiary">#7D5260</color>
-    <color name="md_theme_light_onTertiary">#FFFFFF</color>
-    <color name="md_theme_light_tertiaryContainer">#FFD8E4</color>
-    <color name="md_theme_light_onTertiaryContainer">#31111D</color>
-    <color name="md_theme_light_error">#BA1A1A</color>
-    <color name="md_theme_light_errorContainer">#FFDAD6</color>
-    <color name="md_theme_light_onError">#FFFFFF</color>
-    <color name="md_theme_light_onErrorContainer">#410002</color>
-    <color name="md_theme_light_outline">#79747E</color>
-    <color name="md_theme_light_background">#FFFBFE</color>
-    <color name="md_theme_light_onBackground">#1C1B1F</color>
-    <color name="md_theme_light_surface">#FFFBFE</color>
-    <color name="md_theme_light_onSurface">#1C1B1F</color>
-    <color name="md_theme_light_surfaceVariant">#E7E0EC</color>
-    <color name="md_theme_light_onSurfaceVariant">#49454F</color>
-    <color name="md_theme_light_inverseSurface">#313033</color>
-    <color name="md_theme_light_inverseOnSurface">#F4EFF4</color>
-    <color name="md_theme_light_inversePrimary">#D0BCFF</color>
-</resources>`,
+    'app/src/test/java/com/digitalstudio/app/ExampleUnitTest.kt': `package ${packageName}
 
-    'app/src/main/res/layout/activity_main.xml': `<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp"
-    tools:context=".MainActivity">
+import org.junit.Test
+import org.junit.Assert.*
 
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="4dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+/**
+ * Example local unit test, which will execute on the development machine (host).
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+class ExampleUnitTest {
+    @Test
+    fun addition_isCorrect() {
+        assertEquals(4, 2 + 2)
+    }
+}`,
+
+    'app/src/androidTest/java/com/digitalstudio/app/ExampleInstrumentedTest.kt': `package ${packageName}
+
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.ext.junit.runners.AndroidJUnit4
+
+import org.junit.Test
+import org.junit.runner.RunWith
+
+import org.junit.Assert.*
+
+/**
+ * Instrumented test, which will execute on an Android device.
+ *
+ * See [testing documentation](http://d.android.com/tools/testing).
+ */
+@RunWith(AndroidJUnit4::class)
+class ExampleInstrumentedTest {
+    @Test
+    fun useAppContext() {
+        // Context of the app under test.
+        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
+        assertEquals("${packageName}", appContext.packageName)
+    }
+}`,
+
+    'gradle.properties': `# Project-wide Gradle settings.
+# IDE (e.g. Android Studio) users:
+# Gradle settings configured through the IDE *will override*
+# any settings specified in this file.
+# For more details on how to configure your build environment visit
+# http://www.gradle.org/docs/current/userguide/build_environment.html
+
+# Specifies the JVM arguments used for the daemon process.
+org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+
+# When configured, Gradle will run in incubating parallel mode.
+org.gradle.parallel=true
+
+# AndroidX package structure to make it clearer which packages are bundled with the
+# Android operating system, and which are packaged with your app's APK
+android.useAndroidX=true
+
+# Kotlin code style for this project: "official" or "obsolete":
+kotlin.code.style=official
+
+# Enables namespacing of each library's R class so that its R class includes only the
+# resources declared in the library itself and none from the library's dependencies,
+# thereby reducing the size of the R class for that library
+android.nonTransitiveRClass=true`,
+
+    'README.md': `# ${projectName}
+
+This Android project was generated using Digital Studio VM.
+
+## Features
+- **Architecture**: ${architecture}
+- **Language**: ${language}
+- **UI Framework**: Jetpack Compose with Material Design 3
+- **Dependency Injection**: Hilt
+- **Navigation**: Navigation Compose
+- **State Management**: ViewModel + StateFlow/LiveData
+
+## Project Structure
+\`\`\`
+app/
+├── src/main/java/com/digitalstudio/app/
+│   ├── MainActivity.kt                 # Main entry point
+│   ├── DigitalStudioApplication.kt     # Application class
+│   ├── ui/
+│   │   ├── screens/                    # Compose screens
+│   │   ├── viewmodel/                  # ViewModels
+│   │   └── theme/                      # Material Design 3 theme
+│   ├── data/
+│   │   └── repository/                 # Data layer
+│   └── di/                            # Dependency injection modules
+├── src/test/                          # Unit tests
+└── src/androidTest/                   # Integration tests
+\`\`\`
+
+## Getting Started
+
+### Prerequisites
+- Android Studio Hedgehog | 2023.1.1 or later
+- JDK 8 or higher
+- Android SDK 34
+
+### Building the Project
+1. Clone or download the project
+2. Open in Android Studio
+3. Sync Gradle files
+4. Run the app on a device/emulator
+
+### Dependencies
+- **Jetpack Compose**: Modern UI toolkit
+- **Material Design 3**: Latest design system
+- **Hilt**: Dependency injection
+- **Navigation Compose**: Type-safe navigation
+- **ViewModel**: MVVM architecture
+- **Room**: Local database (optional)
+- **Retrofit**: Networking (optional)
+- **Coroutines**: Asynchronous programming
+
+## Architecture
+This project follows the **${architecture}** architecture pattern:
+- **UI Layer**: Jetpack Compose screens and ViewModels
+- **Domain Layer**: Business logic and use cases
+- **Data Layer**: Repository pattern with data sources
+
+## Testing
+- **Unit Tests**: Located in \`src/test/\`
+- **Integration Tests**: Located in \`src/androidTest/\`
+- **Compose Tests**: UI testing with Compose Testing
+
+## Generated Information
+- **Description**: ${description}
+- **Features**: ${features}
+- **Generated**: ${new Date().toISOString()}
+- **Generated by**: Digital Studio VM
+
+## Next Steps
+1. Customize the UI to match your design
+2. Implement business logic in ViewModels
+3. Add data sources (API, database)
+4. Write comprehensive tests
+5. Add more features as needed
+`
+  };
+
+  return projectFiles;
+}
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout

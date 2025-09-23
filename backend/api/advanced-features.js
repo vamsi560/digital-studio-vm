@@ -248,7 +248,8 @@ Return only the complete, runnable code without explanations.`;
     
     return {
       'src/App.jsx': components,
-      'src/styles/App.css': styling,
+      'src/App.css': this.generateAppCSS(styling),
+      'src/index.css': this.generateGlobalCSS(styling),
       'src/utils/logic.js': logic,
       'src/architecture.json': JSON.stringify(architecture, null, 2)
     };
@@ -273,12 +274,31 @@ function App() {
 export default App;`,
         'src/App.css': `.App {
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .App-header {
   background-color: #282c34;
   padding: 20px;
   color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}`,
+        'src/index.css': `body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }`
       }
     };
@@ -315,6 +335,110 @@ export default App;`,
   mergeCode(original, customizations) {
     // Simple code merging - in production, use AST manipulation
     return original + '\n\n' + customizations;
+  }
+
+  generateAppCSS(styling) {
+    const baseAppCSS = `/* App Component Styles - src/App.css */
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+
+.App-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App-header {
+    padding: 1rem;
+    font-size: calc(8px + 2vmin);
+  }
+  
+  .App-content {
+    padding: 1rem;
+  }
+}`;
+
+    if (typeof styling === 'string' && styling.includes('Tailwind')) {
+      return `/* App Component Styles - src/App.css */
+/* Custom component styles when using Tailwind CSS */
+
+.App {
+  @apply min-h-screen flex flex-col;
+}
+
+.App-header {
+  @apply bg-gray-800 p-8 text-white flex flex-col items-center justify-center text-2xl;
+}
+
+.App-content {
+  @apply flex-1 p-8 max-w-6xl mx-auto w-full;
+}`;
+    }
+
+    return baseAppCSS;
+  }
+
+  generateGlobalCSS(styling) {
+    const baseGlobalCSS = `/* Global Styles - src/index.css */
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* CSS Reset */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 1rem 0;
+}`;
+
+    if (typeof styling === 'string' && styling.includes('Tailwind')) {
+      return `@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+${baseGlobalCSS}`;
+    }
+
+    return baseGlobalCSS;
   }
 
   selectBestResult(results) {

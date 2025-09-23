@@ -108,6 +108,9 @@ async function generateCompleteReactProject(images, options) {
   // Generate the main React component
   const mainComponentCode = await generateWithGemini(images, options);
   
+  // Validate and ensure CSS files are always generated
+  const cssValidation = validateCSSRequirements(mainComponentCode, options);
+  
   // Create complete project structure
   const projectFiles = {
     'package.json': JSON.stringify({
@@ -153,7 +156,8 @@ root.render(
   </React.StrictMode>
 );`,
 
-    'src/index.css': generateCSS(options.styling),
+    'src/index.css': generateGlobalCSS(options.styling),
+    'src/App.css': generateAppCSS(options.styling, cssValidation),
 
     'public/index.html': `<!DOCTYPE html>
 <html lang="en">
@@ -224,17 +228,249 @@ module.exports = {
 }`;
   }
 
+  // Add testing configuration and files
+  projectFiles['src/setupTests.js'] = `// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';`;
+
+  projectFiles['src/App.test.jsx'] = `import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+
+test('renders without crashing', () => {
+  render(<App />);
+});`;
+
+  // Add ESLint configuration
+  projectFiles['.eslintrc.json'] = `{
+  "extends": [
+    "react-app",
+    "react-app/jest"
+  ],
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-console": "warn",
+    "react/prop-types": "warn",
+    "react/no-unescaped-entities": "warn"
+  }
+}`;
+
+  // Add Prettier configuration
+  projectFiles['.prettierrc'] = `{
+  "semi": true,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 80,
+  "tabWidth": 2
+}`;
+
+  // Add environment variables template
+  projectFiles['.env.example'] = `# API Configuration
+REACT_APP_API_URL=http://localhost:3001/api
+
+# Feature Flags
+REACT_APP_ENABLE_ANALYTICS=false
+REACT_APP_DEBUG_MODE=false
+
+# External Services
+REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here`;
+
+  // Add comprehensive documentation
+  projectFiles['DEVELOPMENT.md'] = `# Development Guide
+
+## Getting Started
+
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+- Git
+
+### Installation
+\`\`\`bash
+npm install
+\`\`\`
+
+### Development Server
+\`\`\`bash
+npm start
+\`\`\`
+Opens [http://localhost:3000](http://localhost:3000)
+
+### Building for Production
+\`\`\`bash
+npm run build
+\`\`\`
+
+### Running Tests
+\`\`\`bash
+npm test
+\`\`\`
+
+## Project Structure
+\`\`\`
+src/
+├── components/          # Reusable UI components
+├── pages/              # Page-level components
+├── hooks/              # Custom React hooks
+├── utils/              # Utility functions
+├── services/           # API services
+├── context/            # React Context providers
+├── types/              # TypeScript type definitions
+├── constants/          # Application constants
+└── assets/             # Static assets
+\`\`\`
+
+## Code Standards
+- Use functional components with hooks
+- Follow component naming conventions (PascalCase)
+- Write comprehensive tests for components
+- Use meaningful commit messages
+- Follow ESLint and Prettier rules
+
+## Styling Guidelines
+${options.styling === 'Tailwind CSS' ? 
+  '- Use Tailwind CSS utility classes\n- Create custom components in App.css for complex styles\n- Follow mobile-first responsive design' :
+  '- Use CSS modules or styled-components\n- Follow BEM naming convention\n- Create reusable style components'
+}
+
+## Performance Best Practices
+- Use React.memo for expensive components
+- Implement code splitting with React.lazy
+- Optimize images and assets
+- Use useMemo and useCallback appropriately
+- Monitor bundle size
+
+## Deployment
+This project is configured for deployment on:
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3 + CloudFront
+
+## Environment Variables
+Copy \`.env.example\` to \`.env.local\` and configure your environment variables.
+`;
+
+  // Add additional utility files
+  projectFiles['src/utils/constants.js'] = `// Application constants
+export const API_ENDPOINTS = {
+  BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:3001/api',
+  USERS: '/users',
+  POSTS: '/posts',
+};
+
+export const APP_CONFIG = {
+  APP_NAME: 'Digital Studio Project',
+  VERSION: '1.0.0',
+  DESCRIPTION: 'Generated with Digital Studio VM',
+};
+
+export const ROUTES = {
+  HOME: '/',
+  ABOUT: '/about',
+  CONTACT: '/contact',
+};`;
+
+  projectFiles['src/utils/helpers.js'] = `// Utility helper functions
+
+/**
+ * Formats a date string to a readable format
+ * @param {string} dateString - ISO date string
+ * @returns {string} Formatted date
+ */
+export const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
+
+/**
+ * Debounce function to limit function calls
+ * @param {Function} func - Function to debounce
+ * @param {number} wait - Wait time in milliseconds
+ * @returns {Function} Debounced function
+ */
+export const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+/**
+ * Check if an object is empty
+ * @param {Object} obj - Object to check
+ * @returns {boolean} True if empty
+ */
+export const isEmpty = (obj) => {
+  return Object.keys(obj).length === 0;
+};`;
+
+  // Add a custom hook example
+  projectFiles['src/hooks/useLocalStorage.js'] = `import { useState, useEffect } from 'react';
+
+/**
+ * Custom hook for localStorage management
+ * @param {string} key - localStorage key
+ * @param {*} initialValue - Initial value
+ * @returns {[*, Function]} Current value and setter function
+ */
+export const useLocalStorage = (key, initialValue) => {
+  // Get from local storage then parse stored json or return initialValue
+  const [storedValue, setStoredValue] = useState(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error(\`Error reading localStorage key "\${key}":\`, error);
+      return initialValue;
+    }
+  });
+
+  // Return a wrapped version of useState's setter function that persists the new value to localStorage
+  const setValue = (value) => {
+    try {
+      // Allow value to be a function so we have the same API as useState
+      const valueToStore = value instanceof Function ? value(storedValue) : value;
+      setStoredValue(valueToStore);
+      window.localStorage.setItem(key, JSON.stringify(valueToStore));
+    } catch (error) {
+      console.error(\`Error setting localStorage key "\${key}":\`, error);
+    }
+  };
+
+  return [storedValue, setValue];
+};`;
+
   return projectFiles;
 }
 
-function generateCSS(stylingOption) {
-  const baseCSS = `body {
+// Generate global CSS for index.css
+function generateGlobalCSS(stylingOption) {
+  const globalCSS = `/* Global Styles - src/index.css */
+
+body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
 }
 
 code {
@@ -244,6 +480,38 @@ code {
 
 * {
   box-sizing: border-box;
+}
+
+/* CSS Reset */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: 600;
+}
+
+p {
+  margin: 0 0 1rem 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* Utility Classes */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }`;
 
   if (stylingOption === 'Tailwind CSS') {
@@ -251,10 +519,214 @@ code {
 @tailwind components;
 @tailwind utilities;
 
-${baseCSS}`;
+${globalCSS}`;
   }
 
-  return baseCSS;
+  return globalCSS;
+}
+
+// Generate component-specific CSS for App.css
+function generateAppCSS(stylingOption, validation = {}) {
+  // Extract component classes from validation if available
+  const detectedClasses = validation.detectedClasses || [];
+  const missingImports = validation.missingImports || [];
+  
+  let appCSS = `/* App Component Styles - src/App.css */
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+}
+
+.App-link {
+  color: #61dafb;
+  text-decoration: none;
+}
+
+.App-link:hover {
+  text-decoration: underline;
+}
+
+.App-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App-header {
+    padding: 1rem;
+    font-size: calc(8px + 2vmin);
+  }
+  
+  .App-content {
+    padding: 1rem;
+  }
+}
+
+/* Button Styles */
+.btn {
+  background-color: #61dafb;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  color: #282c34;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #21a1c4;
+}
+
+.btn:focus {
+  outline: 2px solid #61dafb;
+  outline-offset: 2px;
+}
+
+/* Card Styles */
+.card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #61dafb;
+  box-shadow: 0 0 0 2px rgba(97, 218, 251, 0.2);
+}`;
+
+  // Add styles for detected classes that might be missing
+  if (detectedClasses.length > 0) {
+    appCSS += `\n\n/* Auto-generated styles for detected classes */\n`;
+    detectedClasses.forEach(className => {
+      if (!appCSS.includes(`.${className}`)) {
+        appCSS += `\n.${className} {\n  /* Add styles for ${className} */\n  padding: 0.5rem;\n  margin: 0.25rem;\n}\n`;
+      }
+    });
+  }
+
+  if (stylingOption === 'Tailwind CSS') {
+    return `/* App Component Styles - src/App.css */
+/* Custom component styles when using Tailwind CSS */
+
+.App {
+  @apply min-h-screen flex flex-col;
+}
+
+.App-header {
+  @apply bg-gray-800 p-8 text-white flex flex-col items-center justify-center text-2xl;
+}
+
+.App-content {
+  @apply flex-1 p-8 max-w-6xl mx-auto w-full;
+}
+
+/* Custom components that extend Tailwind */
+.btn-primary {
+  @apply bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.card {
+  @apply bg-white rounded-lg p-6 shadow-md mb-4;
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .App-header {
+    @apply p-4 text-xl;
+  }
+  
+  .App-content {
+    @apply p-4;
+  }
+}${detectedClasses.length > 0 ? '\n\n/* Auto-generated Tailwind utilities for detected classes */\n' + detectedClasses.map(className => `/* .${className} - Add Tailwind classes as needed */`).join('\n') : ''}`;
+  }
+
+  return appCSS;
+}
+
+// CSS validation function to ensure proper CSS generation
+function validateCSSRequirements(componentCode, options) {
+  const validation = {
+    detectedClasses: [],
+    missingImports: [],
+    hasAppCSSImport: false,
+    hasIndexCSSImport: false,
+    recommendations: []
+  };
+
+  // Check for CSS imports
+  validation.hasAppCSSImport = componentCode.includes("import './App.css'") || componentCode.includes('import "./App.css"');
+  validation.hasIndexCSSImport = componentCode.includes("import './index.css'") || componentCode.includes('import "./index.css"');
+
+  // Extract className usages
+  const classNameMatches = componentCode.match(/className=["']([^"']+)["']/g);
+  if (classNameMatches) {
+    classNameMatches.forEach(match => {
+      const classes = match.match(/className=["']([^"']+)["']/)[1].split(' ');
+      validation.detectedClasses.push(...classes.filter(cls => cls.trim()));
+    });
+    validation.detectedClasses = [...new Set(validation.detectedClasses)]; // Remove duplicates
+  }
+
+  // Validate import statements
+  if (!validation.hasAppCSSImport) {
+    validation.missingImports.push('App.css');
+    validation.recommendations.push('Component should import App.css for component-specific styles');
+  }
+
+  // Check for common CSS framework usage
+  if (options.styling === 'Tailwind CSS') {
+    const hasTailwindClasses = validation.detectedClasses.some(cls => 
+      ['bg-', 'text-', 'p-', 'm-', 'flex', 'grid', 'w-', 'h-'].some(prefix => cls.startsWith(prefix))
+    );
+    if (hasTailwindClasses) {
+      validation.recommendations.push('Detected Tailwind classes - ensure Tailwind CSS is properly configured');
+    }
+  }
+
+  return validation;
 }
 
 // Helper: generate code with Gemini using images and options
@@ -270,7 +742,43 @@ async function generateWithGemini(images, options) {
 
   const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.\n\nRequirements:\n\n- Styling: ${styling}\n\n- Architecture: ${architecture}\n\n- Custom Logic: ${customLogic || 'None'}\n\n- Routing: ${routing || 'None'}\n\n\nProvide production-ready, accessible, responsive code. Include necessary imports. Return only the component code.`;
+  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.
+
+CRITICAL REQUIREMENTS:
+- MUST include: import './App.css'; at the top of the component
+- MUST use className attributes for styling (not inline styles)
+- MUST follow the exact CSS file structure standards:
+  * App.css for component-specific styles
+  * index.css for global styles (already handled)
+
+TECHNICAL SPECIFICATIONS:
+- Platform: ${platform}
+- Framework: ${framework}
+- Styling: ${styling}
+- Architecture: ${architecture}
+- Custom Logic: ${customLogic || 'None'}
+- Routing: ${routing || 'None'}
+
+CSS REQUIREMENTS:
+- Import App.css: import './App.css';
+- Use semantic CSS class names (e.g., .App, .App-header, .App-content)
+- Ensure responsive design with CSS classes
+- Follow accessibility best practices
+
+CODE STRUCTURE:
+- Functional component with proper imports
+- Clean, semantic HTML structure
+- Proper component organization
+- Error boundaries where appropriate
+- Loading states and user feedback
+
+QUALITY STANDARDS:
+- Production-ready, accessible, responsive code
+- Modern React best practices
+- Clean, readable code structure
+- Comprehensive error handling
+
+Return ONLY the complete App.jsx component code with proper CSS import.`;
 
   const imageParts = (images || []).map(img => ({
     inlineData: {
@@ -280,7 +788,46 @@ async function generateWithGemini(images, options) {
   }));
 
   const result = await model.generateContent([prompt, ...imageParts]);
-  return result.response.text();
+  let generatedCode = result.response.text();
+  
+  // Ensure CSS import is present - fallback mechanism
+  if (!generatedCode.includes("import './App.css'") && !generatedCode.includes('import "./App.css"')) {
+    // Add CSS import after other imports
+    const importLines = [];
+    const otherLines = [];
+    const lines = generatedCode.split('\n');
+    let foundImports = false;
+    
+    for (const line of lines) {
+      if (line.trim().startsWith('import ')) {
+        importLines.push(line);
+        foundImports = true;
+      } else if (foundImports && !line.trim()) {
+        // Empty line after imports - good place to add our import
+        importLines.push("import './App.css';");
+        importLines.push(line);
+        otherLines.push(...lines.slice(lines.indexOf(line) + 1));
+        break;
+      } else if (!foundImports) {
+        // No imports found yet, this might be before imports
+        otherLines.push(line);
+      } else {
+        // After imports
+        if (importLines.length > 0 && !importLines.includes("import './App.css';")) {
+          importLines.push("import './App.css';");
+        }
+        otherLines.push(line);
+      }
+    }
+    
+    if (!importLines.includes("import './App.css';")) {
+      importLines.push("import './App.css';");
+    }
+    
+    generatedCode = [...importLines, ...otherLines].join('\n');
+  }
+  
+  return generatedCode;
 }
 
 // Update the handleCodeGeneration function
