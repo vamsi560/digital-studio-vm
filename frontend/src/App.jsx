@@ -7,6 +7,7 @@ import AndroidLabFlow from './components/AndroidLabFlow';
 import IOSLabFlow from './components/IOSLabFlow';
 import ProjectFileExplorer from './components/ProjectFileExplorer';
 import CodeViewer from './components/CodeViewer';
+import { StandardBackButton, AccessibleText } from './components/UIComponents';
 
 // --- Reusable UI Components ---
 
@@ -364,7 +365,12 @@ const PrototypeView = ({ onNavigate, isJsZipLoaded }) => {
 
     return (
         <div className="content-wrapper min-h-screen flex flex-col ">
-            <button onClick={() => onNavigate('landing')} className="absolute mt-2 left-5  bg-gray-800/80 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">&larr; Back</button>
+            <StandardBackButton 
+                onClick={() => onNavigate('landing')} 
+                variant="floating"
+            >
+                Back
+            </StandardBackButton>
             <div className="flex-grow flex flex-col lg:flex-row gap-6 w-full max-w-6xl mx-auto mt-12">
                 <aside className="w-full lg:w-80 flex-shrink-0 rounded-xl p-4 flex flex-col gap-4 bg-[#1f2937] border border-gray-700/50">
                     <div>
@@ -504,8 +510,14 @@ const AppLabLandingView = ({ onNavigate }) => (
         <div className="w-full h-full bg-[#121212] flex flex-col">
             <div className="flex-shrink-0 h-11 flex items-center justify-center relative border-b border-gray-700/50">
                 <TrafficLights />
-                <p className="text-sm text-gray-400">App Lab</p>
-                <button onClick={() => onNavigate('landing')} className="absolute top-2.5 right-4 text-gray-400 hover:text-white">&larr; Back</button>
+                <AccessibleText variant="caption">App Lab</AccessibleText>
+                <StandardBackButton 
+                    onClick={() => onNavigate('landing')} 
+                    variant="minimal"
+                    className="absolute top-2.5 right-4"
+                >
+                    Back
+                </StandardBackButton>
             </div>
             <div className="flex-grow p-8 flex items-center justify-center overflow-y-auto">
                  <div className="w-full max-w-4xl mx-auto text-center"> 
@@ -641,7 +653,12 @@ const AppLabGenerateView = ({ onNavigate, initialPlatform, isJsZipLoaded }) => {
 
     return (
         <div className="content-wrapper min-h-screen flex flex-col p-8 bg-[#0D0F18]">
-            <button onClick={() => onNavigate('app-lab-landing')} className="absolute top-5 left-5 z-50 bg-gray-800/80 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">&larr; Back</button>
+            <StandardBackButton 
+                onClick={() => onNavigate('app-lab-landing')} 
+                variant="floating"
+            >
+                Back
+            </StandardBackButton>
             <div className="flex-grow flex flex-col lg:flex-row gap-6 w-full max-w-6xl mx-auto mt-12">
                 <aside className="w-full lg:w-80 flex-shrink-0 rounded-xl p-4 flex flex-col gap-4 bg-[#1f2937] border border-gray-700/50">
                     <div className="flex flex-col gap-4 flex-grow min-h-0">
@@ -879,7 +896,12 @@ const IntegrationLabView = ({ onNavigate }) => {
 
     return (
         <div className="content-wrapper h-screen w-full flex flex-col p-4 bg-[#0D0F18]">
-            <button onClick={() => onNavigate('landing')} className="absolute top-5 left-5 z-50 bg-gray-800/80 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">&larr; Back</button>
+            <StandardBackButton 
+                onClick={() => onNavigate('landing')} 
+                variant="floating"
+            >
+                Back
+            </StandardBackButton>
             
             <header className="text-center my-4">
                 <h1 className="text-4xl md:text-5xl font-black text-white">

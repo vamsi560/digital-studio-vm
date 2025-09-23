@@ -2,6 +2,17 @@ import React, { useState, useCallback, useEffect } from 'react';
 import LivePreview from './LivePreview';
 import FigmaImportModal from './FigmaImportModal';
 import GitHubImportModal from './GitHubImportModal';
+import {
+    EnhancedProgressIndicator,
+    StandardBackButton,
+    SkeletonLoader,
+    FileUploadSkeleton,
+    DragDropZone,
+    ImagePreview,
+    ResponsiveGrid,
+    EnhancedModal,
+    AccessibleText
+} from './UIComponents';
 
 const PrototypeLabFlow = ({ onNavigate }) => {
     const [currentScreen, setCurrentScreen] = useState(1);
@@ -21,6 +32,11 @@ const PrototypeLabFlow = ({ onNavigate }) => {
     const [selectedScreenIndex, setSelectedScreenIndex] = useState(0);
     const [workflowStatus, setWorkflowStatus] = useState({});
     const [selectedFile, setSelectedFile] = useState('src/App.jsx');
+    
+    // Enhanced loading and upload states
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [recentlyUploaded, setRecentlyUploaded] = useState([]);
     
     // New state for image expansion and session management
     const [expandedImage, setExpandedImage] = useState(null);
@@ -45,28 +61,55 @@ const PrototypeLabFlow = ({ onNavigate }) => {
     const [componentAnalysis, setComponentAnalysis] = useState(null);
     const [generatedRepoUrl, setGeneratedRepoUrl] = useState('');
 
-    const handleFileUpload = useCallback((files) => {
-        const newScreens = Array.from(files).map(file => ({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            url: URL.createObjectURL(file),
-            file: file
-        }));
+    const handleFileUpload = useCallback(async (files) => {
+        setIsUploading(true);
+        setUploadProgress(0);
         
-        console.log('Files uploaded:', {
-            newScreens: newScreens.map(s => ({ name: s.name, size: s.file.size })),
-            currentUploadedScreens: uploadedScreens.length,
-            currentScreenOrder: screenOrder.length
-        });
-        
-        setUploadedScreens(prev => [...prev, ...newScreens]);
-        // Initialize screen order with empty slots
-        setScreenOrder(prev => [...prev, ...new Array(newScreens.length).fill(null)]);
-        
-        console.log('Screen order updated:', {
-            newLength: screenOrder.length + newScreens.length,
-            nullSlots: new Array(newScreens.length).fill(null).length
-        });
+        try {
+            const newScreens = [];
+            const totalFiles = files.length;
+            
+            for (let i = 0; i < totalFiles; i++) {
+                const file = files[i];
+                const screen = {
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    url: URL.createObjectURL(file),
+                    file: file
+                };
+                newScreens.push(screen);
+                
+                // Update progress
+                setUploadProgress(((i + 1) / totalFiles) * 100);
+                
+                // Simulate processing delay for better UX
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            console.log('Files uploaded:', {
+                newScreens: newScreens.map(s => ({ name: s.name, size: s.file.size })),
+                currentUploadedScreens: uploadedScreens.length,
+                currentScreenOrder: screenOrder.length
+            });
+            
+            setUploadedScreens(prev => [...prev, ...newScreens]);
+            setScreenOrder(prev => [...prev, ...new Array(newScreens.length).fill(null)]);
+            
+            // Track recently uploaded for highlighting
+            setRecentlyUploaded(newScreens.map(s => s.id));
+            setTimeout(() => setRecentlyUploaded([]), 3000); // Clear highlight after 3s
+            
+            console.log('Screen order updated:', {
+                newLength: screenOrder.length + newScreens.length,
+                nullSlots: new Array(newScreens.length).fill(null).length
+            });
+            
+        } catch (error) {
+            console.error('Error uploading files:', error);
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
     }, [uploadedScreens, screenOrder]);
 
     const handleDragOver = (e) => {
@@ -849,38 +892,41 @@ Generated on: ${new Date().toISOString()}
                             <h3 className="text-lg font-bold text-gray-200">Screen Flow Order</h3>
                         </div>
                         
-                        {/* Progress Indicator */}
-                        <div className="flex items-center space-x-2 mb-6">
-                            <div className="flex space-x-2">
-                                {[1, 2, 3, 4].map((step) => (
-                                    <div
-                                        key={step}
-                                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                                            step === 1
-                                                ? 'bg-teal-500 text-white'
-                                                : 'bg-gray-600 text-white'
-                                        }`}
-                                    >
-                                        {step}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        {/* Enhanced Progress Indicator */}
+                        <EnhancedProgressIndicator 
+                            currentStep={1}
+                            steps={[
+                                { title: "Upload", description: "Add screen images" },
+                                { title: "Arrange", description: "Order your flow" },
+                                { title: "Configure", description: "Set preferences" },
+                                { title: "Generate", description: "Create your app" }
+                            ]}
+                        />
 
                         {uploadedScreens.length === 0 && screenOrder.filter(Boolean).length === 0 ? (
-                            <div className="flex items-center justify-center h-[calc(100%-120px)] border-2 border-dashed border-blue-300 rounded-xl bg-gray-800">
-                                <div className="text-center">
+                            <DragDropZone 
+                                onDrop={handleDrop}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                isDragging={isDragging}
+                                className="flex items-center justify-center h-[calc(100%-120px)] bg-gray-800"
+                                acceptedTypes="screen images"
+                            >
+                                <div className="text-center p-8">
                                     <div className="w-16 h-16 bg-gray-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                         </svg>
                                     </div>
-                                    <p className="text-white font-medium mb-1">Upload images to see prototype screen flow</p>
-                                    <p className="text-gray-400 text-sm">Drag screens from sidebar to arrange order</p>
+                                    <AccessibleText variant="body" className="font-medium mb-1">Upload images to see prototype screen flow</AccessibleText>
+                                    <AccessibleText variant="caption">Drag screens from sidebar to arrange order</AccessibleText>
                                 </div>
-                            </div>
+                            </DragDropZone>
                         ) : (
-                            <div className="grid grid-cols-6 gap-4">
+                            <ResponsiveGrid 
+                                minItemWidth="160px" 
+                                className="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4"
+                            >
                                 {screenOrder.map((screen, index) => (
                                     <div 
                                         key={index}
@@ -892,82 +938,76 @@ Generated on: ${new Date().toISOString()}
                                         onDragOver={(e) => e.preventDefault()}
                                         onDrop={(e) => handleScreenDrop(e, index)}
                                         onClick={screen ? () => handleImageClick(screen) : undefined}
+                                        role={screen ? "button" : "region"}
+                                        aria-label={screen ? `Screen ${index + 1}: ${screen.name}` : `Drop zone ${index + 1}`}
+                                        tabIndex={screen ? 0 : -1}
                                     >
                                         {screen ? (
-                                            <div className="relative w-full h-full group">
-                                                <img src={screen.url} alt={screen.name} className="w-full h-full object-cover rounded-lg" />
-                                                <div className="absolute top-2 left-2 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded font-bold">
-                                                    {index + 1}
-                                                </div>
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
-                                                    <div className="text-center">
-                                                        <div className="text-white text-xs font-medium mb-1">Click to expand</div>
-                                                        <button 
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleAddLogic(index);
-                                                            }}
-                                                            className="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
-                                                        >
-                                                            Add Logic
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                            <ImagePreview
+                                                src={screen.url}
+                                                alt={screen.name}
+                                                index={index}
+                                                className="w-full h-full"
+                                                showRemove={false}
+                                                isDraggable={false}
+                                            />
                                         ) : (
-                                            <div className="text-center">
-                                                <span className="text-3xl text-gray-500 font-bold">{index + 1}</span>
-                                                <p className="text-xs text-gray-400 mt-1">Drop screen here</p>
+                                            <div className="text-center p-2">
+                                                <span className="text-2xl md:text-3xl text-gray-500 font-bold">{index + 1}</span>
+                                                <AccessibleText variant="caption" className="mt-1 hidden sm:block">Drop screen here</AccessibleText>
                                             </div>
                                         )}
                                     </div>
                                 ))}
-                            </div>
+                            </ResponsiveGrid>
                         )}
                         
-                        {/* GitHub Connection Status */}
-                        <div className="absolute bottom-6 left-6">
-                            {!isGitHubConnected ? (
-                                <button
-                                    onClick={handleGitHubConnect}
-                                    className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
-                                >
-                                    <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
-                                    </svg>
-                                    <span className="text-sm">Connect GitHub</span>
-                                </button>
-                            ) : (
-                                <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
-                                    </svg>
-                                    <span className="text-sm">✓ Connected</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Enhanced Submit Button */}
-                        <div className="absolute bottom-6 right-6">
-                            {isGenerating ? (
-                                <div className="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg">
-                                    <div className="flex items-center space-x-2">
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                                        <span>{workflowStatus.text || 'Generating...'}</span>
+                        {/* Bottom Action Bar - Aligned Buttons */}
+                        <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between">
+                            {/* GitHub Connection Status */}
+                            <div>
+                                {!isGitHubConnected ? (
+                                    <button
+                                        onClick={handleGitHubConnect}
+                                        className="group bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center space-x-2"
+                                    >
+                                        <svg className="w-4 h-4 group-hover:transform group-hover:rotate-12 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                        </svg>
+                                        <span className="text-sm">Connect GitHub</span>
+                                    </button>
+                                ) : (
+                                    <div className="bg-gradient-to-r from-green-600 to-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg flex items-center space-x-2">
+                                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 012.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12c0-6.27-5.23-11.5-12-11.5z"/>
+                                        </svg>
+                                        <span className="text-sm">✓ Connected</span>
                                     </div>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={handleGenerateCode}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-full transition-all duration-300 flex items-center space-x-2 border border-blue-400"
-                                    aria-label="Generate prototype code"
-                                >
-                                    <span>Generate Prototype Code</span>
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                    </svg>
-                                </button>
-                            )}
+                                )}
+                            </div>
+
+                            {/* Enhanced Submit Button */}
+                            <div>
+                                {isGenerating ? (
+                                    <div className="bg-blue-500 text-white font-bold py-2.5 px-5 rounded-full">
+                                        <div className="flex items-center space-x-2">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                            <span>{workflowStatus.text || 'Generating...'}</span>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleGenerateCode}
+                                        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 px-5 rounded-full transition-all duration-300 flex items-center space-x-2 border border-blue-400"
+                                        aria-label="Generate prototype code"
+                                    >
+                                        <span>Generate Prototype Code</span>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -981,28 +1021,19 @@ Generated on: ${new Date().toISOString()}
             <div className="bg-gradient-to-r from-gray-900 to-gray-800 border-b border-gray-700/50 backdrop-blur-sm px-6 py-4 shadow-xl">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                        <button 
+                        <StandardBackButton 
                             onClick={() => onNavigate('landing')}
-                            className="group bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-gray-200 px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-600/30"
+                            variant="default"
                         >
-                            <div className="flex items-center space-x-2">
-                                <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                                </svg>
-                                <span className="font-medium text-sm">Home</span>
-                            </div>
-                        </button>
-                        <button 
+                            Home
+                        </StandardBackButton>
+                        <StandardBackButton 
                             onClick={() => setCurrentScreen(1)}
-                            className="group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-blue-500/30"
+                            variant="default"
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-blue-500/30"
                         >
-                            <div className="flex items-center space-x-2">
-                                <svg className="w-4 h-4 group-hover:transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-                                </svg>
-                                <span className="font-medium text-sm">Back to Setup</span>
-                            </div>
-                        </button>
+                            Edit Flow
+                        </StandardBackButton>
                     </div>
                     
                     <div className="flex items-center space-x-4">
