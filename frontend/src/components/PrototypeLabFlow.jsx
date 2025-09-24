@@ -886,7 +886,7 @@ Generated on: ${new Date().toISOString()}
 
                 {/* Enhanced Main Area - Screen Order Display */}
                 <div className="flex-1 p-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-200px)] shadow-2xl backdrop-blur-sm relative max-w-4xl mx-auto">
+                    <div className="bg-gradient-to-br from-gray-800 to-gray-700 border border-gray-600/50 rounded-xl p-6 h-[calc(100vh-160px)] shadow-2xl backdrop-blur-sm relative max-w-5xl mx-auto">
                         <div className="flex items-center space-x-3 mb-6">
                             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
                             <h3 className="text-lg font-bold text-gray-200">Screen Flow Order</h3>
@@ -909,7 +909,7 @@ Generated on: ${new Date().toISOString()}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 isDragging={isDragging}
-                                className="flex items-center justify-center h-[calc(100%-120px)] bg-gray-800"
+                                className="flex items-center justify-center h-[calc(100%-140px)] bg-gray-800"
                                 acceptedTypes="screen images"
                             >
                                 <div className="text-center p-8">

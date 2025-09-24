@@ -176,6 +176,17 @@ async function generateCompleteReactProject(images, options) {
     // Fallback to basic generation
     const mainComponentCode = await generateWithGemini(images, options);
     
+    // Analyze images for enhanced CSS generation
+    let imageAnalysis = null;
+    if (images && images.length > 0) {
+      try {
+        const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        imageAnalysis = await analyzeImageMetadata(images, model);
+      } catch (error) {
+        console.warn('Image analysis failed for CSS generation:', error.message);
+      }
+    }
+    
     // Create complete project structure
   const projectFiles = {
     'package.json': JSON.stringify({
@@ -221,7 +232,15 @@ root.render(
   </React.StrictMode>
 );`,
 
-    'src/index.css': generateCSS(options.styling),
+    'src/index.css': generateCSS(options.styling, imageAnalysis),
+
+    'src/theme.json': JSON.stringify(imageAnalysis || {
+      colors: ['#1f2937', '#3b82f6', '#10b981', '#f59e0b'],
+      alignment: 'center',
+      spacing: 'comfortable',
+      typography: 'modern',
+      theme: 'light'
+    }, null, 2),
 
     'public/index.html': `<!DOCTYPE html>
 <html lang="en">
@@ -301,14 +320,42 @@ module.exports = {
   }
 }
 
-function generateCSS(stylingOption) {
-  const baseCSS = `body {
+function generateCSS(stylingOption, imageAnalysis = null) {
+  const theme = imageAnalysis?.theme || 'light';
+  const colors = imageAnalysis?.colors || ['#1f2937', '#3b82f6'];
+  const typography = imageAnalysis?.typography || 'modern';
+  
+  // Typography selection based on analysis
+  const fontStacks = {
+    modern: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+    classic: 'Georgia, "Times New Roman", Times, serif',
+    bold: '"Inter", "Helvetica Neue", Arial, sans-serif',
+    minimal: '"Source Sans Pro", -apple-system, sans-serif'
+  };
+  
+  const selectedFont = fontStacks[typography] || fontStacks.modern;
+
+  const baseCSS = `/* Global Styles - Generated from image analysis */
+:root {
+  --font-primary: ${selectedFont};
+  --primary-color: ${colors[0] || '#1f2937'};
+  --secondary-color: ${colors[1] || '#3b82f6'};
+  --accent-color: ${colors[2] || '#10b981'};
+  --background: ${theme === 'dark' ? '#0f172a' : '#ffffff'};
+  --surface: ${theme === 'dark' ? '#1e293b' : '#f8fafc'};
+  --text-primary: ${theme === 'dark' ? '#f1f5f9' : '#1e293b'};
+  --text-secondary: ${theme === 'dark' ? '#94a3b8' : '#64748b'};
+  --border-color: ${theme === 'dark' ? '#334155' : '#e2e8f0'};
+}
+
+body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
@@ -318,6 +365,28 @@ code {
 
 * {
   box-sizing: border-box;
+}
+
+/* CSS Reset */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: ${typography === 'bold' ? '700' : '600'};
+  color: var(--text-primary);
+}
+
+p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--secondary-color);
 }`;
 
   if (stylingOption === 'Tailwind CSS') {
@@ -325,13 +394,21 @@ code {
 @tailwind components;
 @tailwind utilities;
 
-${baseCSS}`;
+${baseCSS}
+
+/* Custom Tailwind utilities based on image analysis */
+@layer utilities {
+  .text-analyzed-primary { color: var(--text-primary); }
+  .text-analyzed-secondary { color: var(--text-secondary); }
+  .bg-analyzed-surface { background-color: var(--surface); }
+  .border-analyzed { border-color: var(--border-color); }
+}`;
   }
 
   return baseCSS;
 }
 
-// Helper: generate code with Gemini using images and options
+// Helper: generate code with Gemini using images and options with enhanced analysis
 async function generateWithGemini(images, options) {
   const {
     platform = 'web',
@@ -344,7 +421,53 @@ async function generateWithGemini(images, options) {
 
   const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.\n\nRequirements:\n\n- Styling: ${styling}\n\n- Architecture: ${architecture}\n\n- Custom Logic: ${customLogic || 'None'}\n\n- Routing: ${routing || 'None'}\n\n\nProvide production-ready, accessible, responsive code. Include necessary imports. Return only the component code.`;
+  // First, analyze images if provided
+  let imageAnalysis = null;
+  if (images && images.length > 0) {
+    try {
+      imageAnalysis = await analyzeImageMetadata(images, model);
+    } catch (error) {
+      console.warn('Image analysis failed, using defaults:', error.message);
+    }
+  }
+
+  // Enhanced prompt with image analysis data
+  let prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project.
+
+REQUIREMENTS:
+- Platform: ${platform}
+- Framework: ${framework}
+- Styling: ${styling}
+- Architecture: ${architecture}
+- Custom Logic: ${customLogic || 'None'}
+- Routing: ${routing || 'None'}`;
+
+  if (imageAnalysis) {
+    prompt += `
+
+IMAGE ANALYSIS RESULTS:
+- Colors detected: ${imageAnalysis.colors.join(', ')}
+- Layout alignment: ${imageAnalysis.alignment}
+- Spacing preference: ${imageAnalysis.spacing}
+- Typography style: ${imageAnalysis.typography}
+- Theme: ${imageAnalysis.theme}
+- Components identified: ${imageAnalysis.components.join(', ')}
+- Layout type: ${imageAnalysis.layout}
+
+Use these visual elements to create an accurate representation of the design.`;
+  }
+
+  prompt += `
+
+TECHNICAL SPECIFICATIONS:
+- Use modern best practices and clean code
+- Implement responsive design with proper mobile support
+- Add accessibility features (ARIA labels, semantic HTML)
+- Include proper error handling and loading states
+- Use CSS variables for consistent theming
+- Ensure high performance and SEO optimization
+
+Return only the complete, runnable component code without explanations.`;
 
   const imageParts = (images || []).map(img => ({
     inlineData: {
@@ -355,6 +478,61 @@ async function generateWithGemini(images, options) {
 
   const result = await model.generateContent([prompt, ...imageParts]);
   return result.response.text();
+}
+
+// Enhanced image analysis function
+async function analyzeImageMetadata(images, model) {
+  const analysisPrompt = `Analyze these UI/UX design images and extract detailed visual metadata.
+
+EXTRACT THE FOLLOWING:
+1. COLOR PALETTE: List the primary colors used (hex codes)
+2. LAYOUT ALIGNMENT: left, center, right, justified
+3. SPACING: tight, comfortable, loose
+4. TYPOGRAPHY: modern, classic, bold, minimal
+5. ICONS: Describe any icons, buttons, or UI elements visible
+6. LAYOUT TYPE: grid, flex, sidebar, header-footer, card-based
+7. THEME: light, dark, colorful, minimal
+8. COMPONENTS: List UI components visible (navbar, cards, forms, etc.)
+
+Return a JSON object with this structure:
+{
+  "colors": ["#hex1", "#hex2", "#hex3"],
+  "alignment": "center|left|right",
+  "spacing": "tight|comfortable|loose", 
+  "typography": "modern|classic|bold|minimal",
+  "icons": ["description of icons/buttons"],
+  "layout": "grid|flex|sidebar|header-footer|card-based",
+  "theme": "light|dark|colorful|minimal",
+  "components": ["navbar", "cards", "forms"]
+}`;
+
+  const imageParts = images.map(img => ({
+    inlineData: {
+      data: img.data,
+      mimeType: img.mimeType || 'image/png'
+    }
+  }));
+
+  const result = await model.generateContent([analysisPrompt, ...imageParts]);
+  const analysisText = result.response.text();
+  
+  // Clean the response to extract JSON
+  const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return JSON.parse(jsonMatch[0]);
+  }
+  
+  // Fallback analysis
+  return {
+    colors: ['#1f2937', '#3b82f6', '#10b981', '#f59e0b'],
+    alignment: 'center',
+    spacing: 'comfortable',
+    typography: 'modern',
+    icons: ['basic UI elements'],
+    layout: 'responsive',
+    theme: 'light',
+    components: ['header', 'main', 'footer']
+  };
 }
 
 // Update the handleCodeGeneration function
@@ -425,17 +603,37 @@ async function handleCodeGeneration(req, res) {
       routing: formData.body.routing || ''
     };
 
-    // Generate complete project with all files
-    const projectFiles = await generateCompleteReactProject(images, options);
+    // Route to appropriate generator based on platform
+    let projectFiles;
+    if (options.platform === 'android') {
+      projectFiles = await generateCompleteAndroidProject(images, options);
+    } else if (options.platform === 'ios') {
+      projectFiles = await generateCompleteIOSProject(images, options);
+    } else {
+      // Default to React web project
+      projectFiles = await generateCompleteReactProject(images, options);
+    }
     
     const projectId = `project-${Date.now()}`;
     
+    // Determine main code file based on platform
+    let mainCode;
+    if (options.platform === 'android') {
+      mainCode = projectFiles['app/src/main/java/com/digitalstudio/app/MainActivity.kt'] || 
+                 projectFiles['app/src/main/java/com/digitalstudio/app/MainActivity.java'];
+    } else if (options.platform === 'ios') {
+      mainCode = projectFiles['DigitalStudioApp/ContentView.swift'] || 
+                 projectFiles['DigitalStudioApp/ViewController.swift'];
+    } else {
+      mainCode = projectFiles['src/App.jsx'];
+    }
+
     res.json({
       success: true,
       projectFiles: projectFiles,
-      mainCode: projectFiles['src/App.jsx'],
+      mainCode: mainCode,
       qualityScore: { overall: 8, codeQuality: 8, performance: 8, accessibility: 8, security: 8 },
-      analysis: { analysis: 'Complete project structure generated with all necessary files' },
+      analysis: { analysis: `Complete ${options.platform} project structure generated with all necessary files` },
       projectId,
       metadata: {
         id: projectId,
@@ -443,7 +641,7 @@ async function handleCodeGeneration(req, res) {
         framework: options.framework,
         qualityScore: { overall: 8 },
         timestamp: new Date().toISOString(),
-        analysis: 'Complete project structure generated'
+        analysis: `Complete ${options.platform} project structure generated`
       },
       platform: options.platform,
       framework: options.framework,
@@ -587,9 +785,25 @@ async function handleAndroidGeneration(req, res) {
   }
 }
 
-// Enhanced Android project generation
-async function generateCompleteAndroidProject(description, features, architecture, language) {
+// Enhanced Android project generation with image analysis
+async function generateCompleteAndroidProject(images, options) {
   const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  
+  const {
+    architecture = 'MVVM',
+    customLogic = '',
+    styling = 'Material Design 3'
+  } = options || {};
+  
+  // Analyze images for Android-specific design patterns
+  let imageAnalysis = null;
+  if (images && images.length > 0) {
+    try {
+      imageAnalysis = await analyzeImageMetadata(images, model);
+    } catch (error) {
+      console.warn('Image analysis failed for Android generation:', error.message);
+    }
+  }
   
   const projectName = 'DigitalStudioApp';
   const packageName = 'com.digitalstudio.app';
@@ -598,60 +812,103 @@ async function generateCompleteAndroidProject(description, features, architectur
   const useCompose = true; // Modern Android development uses Compose
   
   // Generate main activity with Jetpack Compose
-  const mainActivityPrompt = `Generate a complete ${language} MainActivity for Android using Jetpack Compose with ${architecture} architecture.
+  let mainActivityPrompt = `Generate a complete Kotlin MainActivity for Android using Jetpack Compose with ${architecture} architecture.
 
 REQUIREMENTS:
 - Use Jetpack Compose for UI (modern Android development)
 - Implement ${architecture} architecture pattern  
 - Include proper Material Design 3 theming
-- Add proper state management
+- Add proper state management with StateFlow/LiveData
 - Include error handling and loading states
 - Follow modern Android best practices
-- Add accessibility features
+- Add accessibility features (contentDescription, semantics)
 - Include proper lifecycle management
+- Use Hilt for dependency injection
+- Implement proper navigation with Navigation Compose
 
-Description: ${description}
-Features: ${features}
+CUSTOM LOGIC: ${customLogic || 'Standard mobile app functionality'}`;
 
-STRUCTURE:
+  if (imageAnalysis) {
+    mainActivityPrompt += `
+
+IMAGE ANALYSIS RESULTS:
+- Colors detected: ${imageAnalysis.colors.join(', ')}
+- Layout alignment: ${imageAnalysis.alignment}
+- Spacing preference: ${imageAnalysis.spacing}
+- Typography style: ${imageAnalysis.typography}
+- Theme: ${imageAnalysis.theme}
+- Components identified: ${imageAnalysis.components.join(', ')}
+- Layout type: ${imageAnalysis.layout}
+
+Use these visual elements to create Material Design 3 components that match the design.`;
+  }
+
+  mainActivityPrompt += `
+
+ANDROID PROJECT STRUCTURE:
 - MainActivity.kt with Compose setup
 - UI composables with Material Design 3
-- ViewModel for business logic
-- Repository pattern for data
-- Proper state management
-- Navigation if needed
+- ViewModel for business logic (${architecture} pattern)
+- Repository pattern for data layer
+- Proper dependency injection with Hilt
+- Navigation with NavController
+- Theming with Material Design 3
 
-Return ONLY the complete ${language} MainActivity code with proper imports.`;
+Return ONLY the complete Kotlin MainActivity code with proper imports and package declaration.`;
   
   const mainActivityResult = await model.generateContent(mainActivityPrompt);
   const mainActivityCode = mainActivityResult.response.text();
 
   // Generate additional Compose files
-  const composeUIPrompt = `Generate Jetpack Compose UI components for: ${description}
+  let composeUIPrompt = `Generate Jetpack Compose UI components with Material Design 3.
+
+CUSTOM LOGIC: ${customLogic || 'Standard mobile app UI components'}
 
 Create composable functions for:
-- Main screen UI
-- Custom components
-- Material Design 3 styling
-- Proper state handling
-- Loading and error states
+- Main screen UI with proper Material Design 3 components
+- Custom reusable composables
+- Material Design 3 theming and colors
+- Proper state handling with remember and State
+- Loading states with CircularProgressIndicator
+- Error states with proper user feedback
+- Navigation composables
+- Accessibility features (semantics, contentDescription)`;
 
-Return only the Kotlin Compose UI code.`;
+  if (imageAnalysis) {
+    composeUIPrompt += `
+
+DESIGN REQUIREMENTS (from image analysis):
+- Use colors: ${imageAnalysis.colors.join(', ')}
+- Alignment: ${imageAnalysis.alignment}
+- Spacing: ${imageAnalysis.spacing}
+- Theme: ${imageAnalysis.theme}
+- Components: ${imageAnalysis.components.join(', ')}
+
+Apply these design elements using Material Design 3 components.`;
+  }
+
+  composeUIPrompt += `
+
+Return only the Kotlin Compose UI code with proper package declaration and imports.`;
 
   const composeUIResult = await model.generateContent(composeUIPrompt);
   const composeUICode = composeUIResult.response.text();
 
   // Generate ViewModel
-  const viewModelPrompt = `Generate a ${architecture} ViewModel for: ${description}
+  const viewModelPrompt = `Generate a ${architecture} ViewModel for Android with custom logic: ${customLogic || 'Standard app functionality'}
 
 Include:
-- Proper state management with StateFlow/LiveData
-- Business logic handling
-- Error handling
+- Proper state management with StateFlow/MutableStateFlow
+- Business logic handling with proper separation of concerns
+- Error handling with sealed classes or data classes
 - Repository pattern integration
-- Coroutines for async operations
+- Coroutines for async operations (viewModelScope)
+- Hilt dependency injection (@HiltViewModel)
+- Proper lifecycle awareness
+- Loading states management
+- Data validation and processing
 
-Return only the Kotlin ViewModel code.`;
+Return only the Kotlin ViewModel code with proper package declaration and imports.`;
 
   const viewModelResult = await model.generateContent(viewModelPrompt);
   const viewModelCode = viewModelResult.response.text();
@@ -1211,6 +1468,409 @@ This project follows the **${architecture}** architecture pattern:
 
   return projectFiles;
 }
+
+// iOS project generation with SwiftUI
+async function generateCompleteIOSProject(images, options) {
+  const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  
+  const {
+    architecture = 'MVVM',
+    customLogic = '',
+    styling = 'SwiftUI'
+  } = options || {};
+  
+  // Analyze images for iOS-specific design patterns
+  let imageAnalysis = null;
+  if (images && images.length > 0) {
+    try {
+      imageAnalysis = await analyzeImageMetadata(images, model);
+    } catch (error) {
+      console.warn('Image analysis failed for iOS generation:', error.message);
+    }
+  }
+  
+  const projectName = 'DigitalStudioApp';
+  const bundleId = 'com.digitalstudio.app';
+  
+  // Generate ContentView with SwiftUI
+  let contentViewPrompt = `Generate a complete SwiftUI ContentView for iOS using ${architecture} architecture.
+
+REQUIREMENTS:
+- Use SwiftUI for UI (modern iOS development)
+- Implement ${architecture} architecture pattern
+- Include proper iOS design patterns (Human Interface Guidelines)
+- Add proper state management with @StateObject, @ObservedObject
+- Include error handling and loading states
+- Follow modern iOS/Swift best practices
+- Add accessibility features (accessibility labels, hints)
+- Include proper navigation with NavigationView/NavigationStack
+- Use Combine framework for reactive programming
+- Implement proper dependency injection
+
+CUSTOM LOGIC: ${customLogic || 'Standard iOS app functionality'}`;
+
+  if (imageAnalysis) {
+    contentViewPrompt += `
+
+IMAGE ANALYSIS RESULTS:
+- Colors detected: ${imageAnalysis.colors.join(', ')}
+- Layout alignment: ${imageAnalysis.alignment}
+- Spacing preference: ${imageAnalysis.spacing}
+- Typography style: ${imageAnalysis.typography}
+- Theme: ${imageAnalysis.theme}
+- Components identified: ${imageAnalysis.components.join(', ')}
+- Layout type: ${imageAnalysis.layout}
+
+Use these visual elements to create SwiftUI views that match the design with iOS-appropriate adaptations.`;
+  }
+
+  contentViewPrompt += `
+
+iOS PROJECT STRUCTURE:
+- ContentView.swift with SwiftUI setup
+- ViewModels following ${architecture} pattern
+- Models and data structures
+- Network/Repository layer
+- Proper SwiftUI navigation
+- iOS-specific UI components
+
+Return ONLY the complete Swift ContentView code with proper imports.`;
+
+  const contentViewResult = await model.generateContent(contentViewPrompt);
+  const contentViewCode = contentViewResult.response.text();
+
+  // Generate ViewModel for iOS
+  const viewModelPrompt = `Generate a ${architecture} ViewModel for iOS/SwiftUI with custom logic: ${customLogic || 'Standard iOS app functionality'}
+
+Include:
+- ObservableObject protocol conformance
+- @Published properties for state management
+- Business logic handling with proper separation
+- Error handling with proper Swift error types
+- Combine framework integration for reactive programming
+- Async/await for modern Swift concurrency
+- Proper dependency injection
+- Network/API integration patterns
+- Core Data integration if needed
+- Proper lifecycle management
+
+Return only the Swift ViewModel code with proper imports.`;
+
+  const viewModelResult = await model.generateContent(viewModelPrompt);
+  const viewModelCode = viewModelResult.response.text();
+
+  // Generate App.swift file
+  const appSwiftPrompt = `Generate a SwiftUI App struct for iOS with proper setup.
+
+Include:
+- @main App struct
+- WindowGroup setup
+- Proper app lifecycle handling
+- Dependency injection setup
+- Core Data stack if needed
+- Environment setup
+
+Return only the Swift App code.`;
+
+  const appSwiftResult = await model.generateContent(appSwiftPrompt);
+  const appSwiftCode = appSwiftResult.response.text();
+
+  // Generate complete iOS project structure
+  const projectFiles = {
+    'DigitalStudioApp.xcodeproj/project.pbxproj': `// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		// Project configuration for iOS app
+		// Modern iOS development with SwiftUI
+		// Minimum iOS version: 16.0
+	};
+	rootObject = /* Project object */;
+}`,
+
+    'DigitalStudioApp/App.swift': appSwiftCode,
+    
+    'DigitalStudioApp/ContentView.swift': contentViewCode,
+    
+    'DigitalStudioApp/ViewModels/MainViewModel.swift': viewModelCode,
+    
+    'DigitalStudioApp/Models/AppModel.swift': `import Foundation
+import SwiftUI
+
+// MARK: - Data Models
+struct AppModel: Codable, Identifiable {
+    let id = UUID()
+    // Add your data properties here
+    
+    // Custom logic: ${customLogic || 'Standard data model'}
+}
+
+// MARK: - App State
+class AppState: ObservableObject {
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    @Published var items: [AppModel] = []
+}`,
+
+    'DigitalStudioApp/Views/Components/LoadingView.swift': `import SwiftUI
+
+struct LoadingView: View {
+    var body: some View {
+        VStack {
+            ProgressView()
+                .scaleEffect(1.5)
+                .padding()
+            
+            Text("Loading...")
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemBackground))
+    }
+}
+
+#Preview {
+    LoadingView()
+}`,
+
+    'DigitalStudioApp/Views/Components/ErrorView.swift': `import SwiftUI
+
+struct ErrorView: View {
+    let message: String
+    let retryAction: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 50))
+                .foregroundColor(.orange)
+            
+            Text("Something went wrong")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Text(message)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button("Try Again") {
+                retryAction()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(UIColor.systemBackground))
+    }
+}
+
+#Preview {
+    ErrorView(message: "Unable to load data") {
+        // Retry action
+    }
+}`,
+
+    'DigitalStudioApp/Info.plist': `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>${bundleId}</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<true/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+</dict>
+</plist>`,
+
+    'DigitalStudioApp/Assets.xcassets/Contents.json': `{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}`,
+
+    'DigitalStudioApp/Assets.xcassets/AppIcon.appiconset/Contents.json': `{
+  "images" : [
+    {
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "size" : "20x20"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "size" : "20x20"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "size" : "29x29"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "size" : "29x29"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "size" : "40x40"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "size" : "40x40"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "size" : "60x60"
+    },
+    {
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "size" : "60x60"
+    },
+    {
+      "idiom" : "ipad",
+      "scale" : "1x",
+      "size" : "20x20"
+    },
+    {
+      "idiom" : "ipad",
+      "scale" : "2x",
+      "size" : "20x20"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}`,
+
+    'DigitalStudioApp/Assets.xcassets/AccentColor.colorset/Contents.json': `{
+  "colors" : [
+    {
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}`,
+
+    'README.md': `# ${projectName}
+
+A SwiftUI iOS application generated by Digital Studio VM.
+
+## Features
+
+- Modern SwiftUI architecture
+- ${architecture} design pattern
+- iOS Human Interface Guidelines compliant
+- Accessibility support
+- Error handling and loading states
+- Combine framework integration
+- Modern Swift concurrency (async/await)
+
+## Custom Logic
+
+${customLogic || 'Standard iOS application functionality'}
+
+## Architecture
+
+This app follows the ${architecture} architecture pattern with:
+- Views: SwiftUI views for the user interface
+- ViewModels: Business logic and state management
+- Models: Data structures and business entities
+- Services: Network and data persistence layers
+
+## Requirements
+
+- iOS 16.0+
+- Xcode 15.0+
+- Swift 5.9+
+
+## Installation
+
+1. Open DigitalStudioApp.xcodeproj in Xcode
+2. Select your target device or simulator
+3. Press Cmd+R to build and run
+
+## Generated Features
+
+${imageAnalysis ? `
+### Design Analysis Applied
+- Colors: ${imageAnalysis.colors.join(', ')}
+- Theme: ${imageAnalysis.theme}
+- Layout: ${imageAnalysis.layout}
+- Components: ${imageAnalysis.components.join(', ')}
+` : ''}
+
+Generated on: ${new Date().toISOString()}
+`
+  };
+
+  return projectFiles;
+}
+
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout

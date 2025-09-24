@@ -105,21 +105,25 @@ export class AdvancedCodeGenerator {
   }
 
   async generateWithStrategy2(images, options) {
-    // Strategy 2: Step-by-step generation
+    // Strategy 2: Step-by-step generation with image analysis
+    const imageAnalysis = await this.analyzeImages(images);
+    
     const steps = [
-      this.generateArchitecture(images, options),
-      this.generateComponents(images, options),
-      this.generateStyling(images, options),
-      this.generateLogic(images, options)
+      this.generateArchitecture(images, options, imageAnalysis),
+      this.generateComponents(images, options, imageAnalysis),
+      this.generateStyling(images, options, imageAnalysis),
+      this.generateLogic(images, options, imageAnalysis)
     ];
 
     const results = await Promise.all(steps);
-    const combinedCode = this.combineStepResults(results);
+    const combinedCode = this.combineStepResults(results, imageAnalysis);
     
     return {
       code: combinedCode,
+      projectFiles: combinedCode,
       strategy: 'step-by-step',
-      quality: this.assessCodeQuality(combinedCode)
+      quality: this.assessCodeQuality(combinedCode['src/App.jsx'] || combinedCode.code || combinedCode),
+      imageAnalysis
     };
   }
 
@@ -242,16 +246,17 @@ Return only the complete, runnable code without explanations.`;
     return result.response.text();
   }
 
-  combineStepResults(results) {
+  combineStepResults(results, imageAnalysis = null) {
     // Combine architecture, components, styling, and logic into a complete project
     const [architecture, components, styling, logic] = results;
     
     return {
       'src/App.jsx': components,
-      'src/App.css': this.generateAppCSS(styling),
-      'src/index.css': this.generateGlobalCSS(styling),
+      'src/App.css': this.generateAppCSS(styling, imageAnalysis),
+      'src/index.css': this.generateGlobalCSS(styling, imageAnalysis),
       'src/utils/logic.js': logic,
-      'src/architecture.json': JSON.stringify(architecture, null, 2)
+      'src/architecture.json': JSON.stringify(architecture, null, 2),
+      'src/theme.json': JSON.stringify(imageAnalysis || {}, null, 2)
     };
   }
 
@@ -319,6 +324,152 @@ export default App;`,
     return JSON.parse(result.response.text());
   }
 
+  // Enhanced image analysis for extracting visual metadata
+  async analyzeImages(images) {
+    if (!images || images.length === 0) {
+      return {
+        colors: ['#1f2937', '#3b82f6', '#10b981', '#f59e0b'],
+        alignment: 'center',
+        spacing: 'comfortable',
+        typography: 'modern',
+        icons: [],
+        layout: 'responsive',
+        theme: 'light',
+        components: []
+      };
+    }
+
+    const model = this.gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    const analysisPrompt = `Analyze these UI/UX design images and extract detailed visual metadata.
+
+EXTRACT THE FOLLOWING:
+1. COLOR PALETTE: List the primary colors used (hex codes)
+2. LAYOUT ALIGNMENT: left, center, right, justified
+3. SPACING: tight, comfortable, loose
+4. TYPOGRAPHY: modern, classic, bold, minimal
+5. ICONS: Describe any icons, buttons, or UI elements visible
+6. LAYOUT TYPE: grid, flex, sidebar, header-footer, card-based
+7. THEME: light, dark, colorful, minimal
+8. COMPONENTS: List UI components visible (navbar, cards, forms, etc.)
+9. VISUAL HIERARCHY: How elements are prioritized
+10. RESPONSIVE DESIGN: Mobile-first, desktop-first, or hybrid
+
+Return a JSON object with this structure:
+{
+  "colors": ["#hex1", "#hex2", "#hex3"],
+  "alignment": "center|left|right",
+  "spacing": "tight|comfortable|loose", 
+  "typography": "modern|classic|bold|minimal",
+  "icons": ["description of icons/buttons"],
+  "layout": "grid|flex|sidebar|header-footer|card-based",
+  "theme": "light|dark|colorful|minimal",
+  "components": ["navbar", "cards", "forms"],
+  "hierarchy": "description of visual priority",
+  "responsive": "mobile-first|desktop-first|hybrid"
+}`;
+
+    try {
+      const imageParts = images.map(img => ({
+        inlineData: {
+          data: img.data,
+          mimeType: img.mimeType || 'image/png'
+        }
+      }));
+
+      const result = await model.generateContent([analysisPrompt, ...imageParts]);
+      const analysisText = result.response.text();
+      
+      // Clean the response to extract JSON
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[0]);
+      }
+      
+      // Fallback if JSON parsing fails
+      return this.extractMetadataFromText(analysisText);
+      
+    } catch (error) {
+      console.warn('Image analysis failed, using defaults:', error.message);
+      return {
+        colors: ['#1f2937', '#3b82f6', '#10b981', '#f59e0b'],
+        alignment: 'center',
+        spacing: 'comfortable',
+        typography: 'modern',
+        icons: ['basic UI elements'],
+        layout: 'responsive',
+        theme: 'light',
+        components: ['header', 'main', 'footer'],
+        hierarchy: 'standard header-content-footer',
+        responsive: 'mobile-first'
+      };
+    }
+  }
+
+  // Extract metadata from text when JSON parsing fails
+  extractMetadataFromText(text) {
+    const metadata = {
+      colors: [],
+      alignment: 'center',
+      spacing: 'comfortable',
+      typography: 'modern',
+      icons: [],
+      layout: 'responsive',
+      theme: 'light',
+      components: [],
+      hierarchy: 'standard',
+      responsive: 'mobile-first'
+    };
+
+    // Extract colors (hex codes)
+    const colorMatches = text.match(/#[0-9a-fA-F]{6}/g);
+    if (colorMatches) {
+      metadata.colors = [...new Set(colorMatches)].slice(0, 6);
+    }
+
+    // Extract alignment
+    if (text.includes('center')) metadata.alignment = 'center';
+    else if (text.includes('left')) metadata.alignment = 'left';
+    else if (text.includes('right')) metadata.alignment = 'right';
+
+    // Extract theme
+    if (text.includes('dark')) metadata.theme = 'dark';
+    else if (text.includes('colorful')) metadata.theme = 'colorful';
+    else if (text.includes('minimal')) metadata.theme = 'minimal';
+
+    // Extract layout type
+    if (text.includes('grid')) metadata.layout = 'grid';
+    else if (text.includes('sidebar')) metadata.layout = 'sidebar';
+    else if (text.includes('card')) metadata.layout = 'card-based';
+
+    // Default colors if none found
+    if (metadata.colors.length === 0) {
+      metadata.colors = ['#1f2937', '#3b82f6', '#10b981', '#f59e0b'];
+    }
+
+    return metadata;
+  }
+
+  // Utility function to darken a color
+  darkenColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) - amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) - amt));
+    const B = Math.max(0, Math.min(255, (num & 0x0000FF) - amt));
+    return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+  }
+
+  // Utility function to lighten a color
+  lightenColor(hex, percent) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+    const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
+    const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
+    return '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+  }
+
   applyCustomizations(template, customizations) {
     // Apply customizations to the template
     const customized = { ...template };
@@ -337,33 +488,90 @@ export default App;`,
     return original + '\n\n' + customizations;
   }
 
-  generateAppCSS(styling) {
+  generateAppCSS(styling, imageAnalysis = null) {
+    const colors = imageAnalysis?.colors || ['#282c34', '#61dafb', '#ffffff'];
+    const alignment = imageAnalysis?.alignment || 'center';
+    const spacing = imageAnalysis?.spacing || 'comfortable';
+    const theme = imageAnalysis?.theme || 'light';
+    
+    // Determine spacing values
+    const spacingMap = {
+      tight: { padding: '1rem', headerPadding: '1rem' },
+      comfortable: { padding: '2rem', headerPadding: '20px' },
+      loose: { padding: '3rem', headerPadding: '2rem' }
+    };
+    const spacingValues = spacingMap[spacing] || spacingMap.comfortable;
+
+    // Generate color variables
+    const primaryColor = colors[0] || '#282c34';
+    const accentColor = colors[1] || '#61dafb';
+    const backgroundColor = theme === 'dark' ? '#121212' : '#ffffff';
+    const textColor = theme === 'dark' ? '#ffffff' : '#333333';
+
     const baseAppCSS = `/* App Component Styles - src/App.css */
+/* Generated from image analysis - Colors: ${colors.join(', ')} */
+
+:root {
+  --primary-color: ${primaryColor};
+  --accent-color: ${accentColor};
+  --background-color: ${backgroundColor};
+  --text-color: ${textColor};
+  --spacing-unit: ${spacingValues.padding};
+}
 
 .App {
-  text-align: center;
+  text-align: ${alignment};
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .App-header {
-  background-color: #282c34;
-  padding: 20px;
+  background: linear-gradient(135deg, ${primaryColor}, ${accentColor});
+  padding: ${spacingValues.headerPadding};
   color: white;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: ${alignment === 'left' ? 'flex-start' : alignment === 'right' ? 'flex-end' : 'center'};
   justify-content: center;
   font-size: calc(10px + 2vmin);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .App-content {
   flex: 1;
-  padding: 2rem;
+  padding: var(--spacing-unit);
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+}
+
+/* Color-based component styling */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: ${this.darkenColor(primaryColor, 20)};
+  transform: translateY(-1px);
+}
+
+.card {
+  background-color: var(--background-color);
+  border: 1px solid ${this.lightenColor(primaryColor, 70)};
+  border-radius: 0.75rem;
+  padding: var(--spacing-unit);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin: 1rem 0;
 }
 
 /* Responsive Design */
@@ -371,49 +579,112 @@ export default App;`,
   .App-header {
     padding: 1rem;
     font-size: calc(8px + 2vmin);
+    align-items: center; /* Center on mobile regardless of desktop alignment */
   }
   
   .App-content {
     padding: 1rem;
+  }
+  
+  :root {
+    --spacing-unit: 1rem;
   }
 }`;
 
     if (typeof styling === 'string' && styling.includes('Tailwind')) {
       return `/* App Component Styles - src/App.css */
 /* Custom component styles when using Tailwind CSS */
+/* Generated from image analysis - Colors: ${colors.join(', ')} */
+
+:root {
+  --primary-color: ${primaryColor};
+  --accent-color: ${accentColor};
+  --background-color: ${backgroundColor};
+  --text-color: ${textColor};
+}
 
 .App {
   @apply min-h-screen flex flex-col;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  text-align: ${alignment};
 }
 
 .App-header {
-  @apply bg-gray-800 p-8 text-white flex flex-col items-center justify-center text-2xl;
+  @apply p-8 text-white flex flex-col justify-center text-2xl shadow-lg;
+  background: linear-gradient(135deg, ${primaryColor}, ${accentColor});
+  align-items: ${alignment === 'left' ? 'flex-start' : alignment === 'right' ? 'flex-end' : 'center'};
 }
 
 .App-content {
   @apply flex-1 p-8 max-w-6xl mx-auto w-full;
+}
+
+/* Custom utility classes based on image analysis */
+.btn-analyzed {
+  background-color: var(--primary-color);
+  @apply text-white border-none px-6 py-3 rounded-lg font-medium cursor-pointer transition-all duration-200;
+}
+
+.btn-analyzed:hover {
+  background-color: ${this.darkenColor(primaryColor, 20)};
+  @apply transform -translate-y-px;
+}
+
+.card-analyzed {
+  background-color: var(--background-color);
+  border-color: ${this.lightenColor(primaryColor, 70)};
+  @apply border rounded-xl p-6 shadow-md my-4;
 }`;
     }
 
     return baseAppCSS;
   }
 
-  generateGlobalCSS(styling) {
+  generateGlobalCSS(styling, imageAnalysis = null) {
+    const theme = imageAnalysis?.theme || 'light';
+    const colors = imageAnalysis?.colors || ['#1f2937', '#3b82f6'];
+    const typography = imageAnalysis?.typography || 'modern';
+    
+    // Typography selection based on analysis
+    const fontStacks = {
+      modern: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif',
+      classic: 'Georgia, "Times New Roman", Times, serif',
+      bold: '"Inter", "Helvetica Neue", Arial, sans-serif',
+      minimal: '"Source Sans Pro", -apple-system, sans-serif'
+    };
+    
+    const selectedFont = fontStacks[typography] || fontStacks.modern;
+
     const baseGlobalCSS = `/* Global Styles - src/index.css */
+/* Generated from image analysis - Theme: ${theme}, Typography: ${typography} */
+
+:root {
+  --font-primary: ${selectedFont};
+  --primary-color: ${colors[0] || '#1f2937'};
+  --secondary-color: ${colors[1] || '#3b82f6'};
+  --accent-color: ${colors[2] || '#10b981'};
+  --warning-color: ${colors[3] || '#f59e0b'};
+  --background: ${theme === 'dark' ? '#0f172a' : '#ffffff'};
+  --surface: ${theme === 'dark' ? '#1e293b' : '#f8fafc'};
+  --text-primary: ${theme === 'dark' ? '#f1f5f9' : '#1e293b'};
+  --text-secondary: ${theme === 'dark' ? '#94a3b8' : '#64748b'};
+  --border-color: ${theme === 'dark' ? '#334155' : '#e2e8f0'};
+}
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: var(--font-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  background-color: var(--background);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 * {
@@ -423,11 +694,40 @@ code {
 /* CSS Reset */
 h1, h2, h3, h4, h5, h6 {
   margin: 0;
-  font-weight: 600;
+  font-weight: ${typography === 'bold' ? '700' : '600'};
+  color: var(--text-primary);
 }
 
 p {
   margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--secondary-color);
+}
+
+/* Global utility classes based on image analysis */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.bg-surface { background-color: var(--surface); }
+.border-default { border-color: var(--border-color); }
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+  
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
 }`;
 
     if (typeof styling === 'string' && styling.includes('Tailwind')) {
@@ -435,7 +735,31 @@ p {
 @tailwind components;
 @tailwind utilities;
 
-${baseGlobalCSS}`;
+${baseGlobalCSS}
+
+/* Custom Tailwind layer with image analysis */
+@layer components {
+  .btn-analyzed {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200;
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .btn-analyzed:hover {
+    background-color: var(--secondary-color);
+    @apply transform -translate-y-px shadow-lg;
+  }
+  
+  .card-analyzed {
+    @apply rounded-xl shadow-md transition-shadow duration-200;
+    background-color: var(--surface);
+    border: 1px solid var(--border-color);
+  }
+  
+  .card-analyzed:hover {
+    @apply shadow-lg;
+  }
+}`;
     }
 
     return baseGlobalCSS;
