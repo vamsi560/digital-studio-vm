@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import { InputValidator, SecurityValidator, createValidationMiddleware } from './validation.js';
 import { codeGenerationCache, performanceMonitor, requestThrottler } from './cache.js';
 import { advancedCodeGenerator, CodeAnalyzer, ProjectOptimizer } from './advanced-features.js';
+import EnhancedFigmaIntegration from './enhanced-figma-integration.js';
 
 // CORS configuration
 const corsMiddleware = cors({
@@ -661,7 +662,7 @@ async function handleCodeGeneration(req, res) {
 // Handle Figma import
 async function handleFigmaImport(req, res) {
   try {
-    const { figmaUrl, platform, framework, styling, architecture } = req.body;
+    const { figmaUrl, platform = 'web', framework = 'React', styling = 'Tailwind CSS', architecture = 'Component Based', customLogic = '', routing = '' } = req.body;
 
     if (!figmaUrl) {
       return res.status(400).json({
@@ -673,46 +674,43 @@ async function handleFigmaImport(req, res) {
 
     console.log('Importing from Figma:', { figmaUrl, platform, framework });
 
-    // Extract file key from Figma URL
-    const fileKey = extractFigmaFileKey(figmaUrl);
-    if (!fileKey) {
+    // Use EnhancedFigmaIntegration instead of placeholder functions
+    const figmaIntegration = new EnhancedFigmaIntegration();
+    
+    const options = {
+      platform,
+      framework,
+      styling,
+      architecture,
+      customLogic,
+      routing
+    };
+
+    // Import from Figma using the enhanced integration
+    const result = await figmaIntegration.importFromFigma(figmaUrl, options);
+
+    if (!result.success) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid Figma URL',
+        error: result.error,
         timestamp: new Date().toISOString()
       });
     }
 
-    // Get Figma file data
-    const figmaData = await getFigmaFileData(fileKey);
-    const frames = extractFigmaFrames(figmaData.document);
-    const imageUrls = await getFigmaImageUrls(fileKey, frames);
-    const images = await downloadFigmaImages(imageUrls);
-
-    // Generate code from Figma data
-    const options = {
-      platform: platform || 'web',
-      framework: framework || 'React',
-      styling: styling || 'Tailwind CSS',
-      architecture: architecture || 'Component Based'
-    };
-
-    const generatedCode = await generateWithGemini(images, options);
-    
+    // Create project ID
     const projectId = `figma-project-${Date.now()}`;
     
     res.json({
       success: true,
-      mainCode: generatedCode,
-      figmaData: {
-        fileKey,
-        frames: frames.length,
-        images: images.length
-      },
+      mainCode: result.code,
+      qualityScore: result.qualityScore,
+      analysis: result.analysis,
+      projectPath: result.projectPath,
+      figmaData: result.figmaData,
       projectId,
-      platform: options.platform,
-      framework: options.framework,
-      timestamp: new Date().toISOString()
+      platform: result.platform,
+      framework: result.framework,
+      timestamp: result.timestamp
     });
 
   } catch (error) {
@@ -2439,35 +2437,6 @@ async function handleEnhancedAPI(req, res) {
 }
 
 // Figma helper functions
-function extractFigmaFileKey(url) {
-  const match = url.match(/figma\.com\/file\/([a-zA-Z0-9]+)/);
-  return match ? match[1] : null;
-}
-
-async function getFigmaFileData(fileKey) {
-  // Placeholder for Figma API integration
-  return {
-    document: {
-      children: []
-    }
-  };
-}
-
-function extractFigmaFrames(document) {
-  // Placeholder for frame extraction
-  return [];
-}
-
-async function getFigmaImageUrls(fileKey, frames) {
-  // Placeholder for image URL generation
-  return [];
-}
-
-async function downloadFigmaImages(imageUrls) {
-  // Placeholder for image downloading
-  return [];
-}
-
 // Health check endpoint
 async function handleHealth(req, res) {
   try {

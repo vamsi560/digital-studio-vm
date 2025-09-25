@@ -2,6 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import multer from 'multer';
 import cors from 'cors';
 import JSZip from 'jszip';
+import SpecializedCVTools from '../backend/api/specialized-cv-tools.js';
+import HybridAnalysisMerger from '../backend/api/utils/hybrid-analysis-merger.js';
 
 // CORS configuration
 const corsMiddleware = cors({
@@ -11,6 +13,10 @@ const corsMiddleware = cors({
 
 // Initialize Gemini AI model
 const gemini = new GoogleGenerativeAI("AIzaSyBcR6rMwP9v8e2cN56gdnkWMhJtOWyP_uU");
+
+// Initialize CV analysis tools
+const cvTools = new SpecializedCVTools();
+const hybridMerger = new HybridAnalysisMerger();
 
 // Configure multer for file uploads
 const upload = multer({
@@ -103,10 +109,12 @@ export default async function handler(req, res) {
   }
 }
 
-// Enhanced code generation function that creates complete projects
+// Enhanced code generation function that creates complete projects with hybrid CV-LLM analysis
 async function generateCompleteReactProject(images, options) {
-  // Generate the main React component
-  const mainComponentCode = await generateWithGemini(images, options);
+  console.log('Starting hybrid CV-LLM code generation...');
+  
+  // Generate the main React component using hybrid approach
+  const mainComponentCode = await generateWithHybridAnalysis(images, options);
   
   // Validate and ensure CSS files are always generated
   const cssValidation = validateCSSRequirements(mainComponentCode, options);
@@ -828,6 +836,233 @@ Return ONLY the complete App.jsx component code with proper CSS import.`;
   }
   
   return generatedCode;
+}
+
+// Enhanced hybrid analysis function combining CV and LLM
+async function generateWithHybridAnalysis(images, options) {
+  try {
+    console.log('Running hybrid CV-LLM analysis pipeline...');
+    
+    // Step 1: Run CV analysis on images
+    const cvAnalysis = await cvTools.analyzeWithSpecializedCV(images);
+    console.log('CV analysis completed:', {
+      elements: cvAnalysis.elements?.length || 0,
+      confidence: cvAnalysis.confidence || 0
+    });
+    
+    // Step 2: Run traditional LLM analysis
+    const llmAnalysis = await analyzeImageMetadata(images, gemini.getGenerativeModel({ model: 'gemini-1.5-flash' }));
+    console.log('LLM analysis completed');
+    
+    // Step 3: Merge CV and LLM results
+    const mergedAnalysis = await hybridMerger.mergeAnalysisResults(cvAnalysis, llmAnalysis, options);
+    console.log('Hybrid analysis merge completed:', {
+      confidence: mergedAnalysis.confidence?.overall || 0,
+      elements: mergedAnalysis.elements?.length || 0
+    });
+    
+    // Step 4: Generate enhanced prompt with merged insights
+    const enhancedPrompt = buildEnhancedPromptFromHybridAnalysis(mergedAnalysis, options);
+    
+    // Step 5: Generate code with enhanced context
+    const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const imageParts = (images || []).map(img => ({
+      inlineData: {
+        data: img.data,
+        mimeType: img.mimeType || 'image/png'
+      }
+    }));
+    
+    const result = await model.generateContent([enhancedPrompt, ...imageParts]);
+    let generatedCode = result.response.text();
+    
+    // Ensure CSS import is present
+    if (!generatedCode.includes("import './App.css'") && !generatedCode.includes('import "./App.css"')) {
+      const importLines = [];
+      const otherLines = [];
+      const lines = generatedCode.split('\n');
+      let foundImports = false;
+      
+      for (const line of lines) {
+        if (line.trim().startsWith('import ')) {
+          importLines.push(line);
+          foundImports = true;
+        } else if (foundImports && !line.trim()) {
+          importLines.push("import './App.css';");
+          importLines.push(line);
+          otherLines.push(...lines.slice(lines.indexOf(line) + 1));
+          break;
+        } else if (!foundImports) {
+          otherLines.push(line);
+        } else {
+          if (importLines.length > 0 && !importLines.includes("import './App.css';")) {
+            importLines.push("import './App.css';");
+          }
+          otherLines.push(line);
+        }
+      }
+      
+      if (!importLines.includes("import './App.css';")) {
+        importLines.push("import './App.css';");
+      }
+      
+      generatedCode = [...importLines, ...otherLines].join('\n');
+    }
+    
+    console.log('Hybrid code generation completed successfully');
+    return generatedCode;
+    
+  } catch (error) {
+    console.error('Hybrid analysis error, falling back to LLM-only:', error);
+    // Fallback to original LLM-only approach
+    return await generateWithGemini(images, options);
+  }
+}
+
+// Build enhanced prompt from hybrid analysis results
+function buildEnhancedPromptFromHybridAnalysis(mergedAnalysis, options) {
+  const {
+    platform = 'web',
+    framework = 'React',
+    styling = 'Tailwind CSS',
+    architecture = 'Component Based',
+    customLogic = '',
+    routing = ''
+  } = options || {};
+
+  const { elements, layout, colors, insights } = mergedAnalysis;
+  
+  // Extract detailed analysis for prompt
+  const detectedElements = elements.map(el => ({
+    type: el.enhancedType || el.type,
+    bounds: el.bounds,
+    confidence: el.confidence,
+    semanticRole: el.semanticRole
+  }));
+  
+  const layoutStructure = layout.structure || 'simple';
+  const gridInfo = layout.grid || { columns: 1, rows: 1 };
+  const semanticLayout = layout.semantic || {};
+  
+  const colorPalette = colors.map(color => ({
+    hex: color.hex,
+    usage: color.usage,
+    confidence: color.confidence
+  })).slice(0, 6); // Top 6 colors
+  
+  const prompt = `Generate a complete ${framework} main component (App.jsx) for a ${platform} project using HYBRID CV-LLM ANALYSIS.
+
+CRITICAL REQUIREMENTS:
+- MUST include: import './App.css'; at the top of the component
+- MUST use className attributes for styling (not inline styles)
+- MUST follow the exact CSS file structure standards
+- Follow the PRECISE layout and element specifications below
+
+HYBRID ANALYSIS RESULTS (Confidence: ${Math.round((mergedAnalysis.confidence?.overall || 0) * 100)}%):
+
+DETECTED UI ELEMENTS (${detectedElements.length} elements):
+${detectedElements.map((el, i) => 
+  `${i + 1}. ${el.type} at (${el.bounds?.x || 0}, ${el.bounds?.y || 0}) - ${el.bounds?.width || 0}x${el.bounds?.height || 0}px
+   - Semantic Role: ${el.semanticRole || 'content'}
+   - Confidence: ${Math.round((el.confidence || 0) * 100)}%`
+).join('\n')}
+
+LAYOUT STRUCTURE:
+- Type: ${layoutStructure}
+- Grid: ${gridInfo.columns} columns × ${gridInfo.rows} rows
+- Has Header: ${semanticLayout.hasHeader ? 'Yes' : 'No'}
+- Has Sidebar: ${semanticLayout.hasSidebar ? 'Yes' : 'No'}
+- Has Footer: ${semanticLayout.hasFooter ? 'Yes' : 'No'}
+- Responsive: ${semanticLayout.isResponsive ? 'Yes' : 'No'}
+
+COLOR PALETTE:
+${colorPalette.map(color => 
+  `- ${color.hex} (${color.usage || 'accent'}) - ${Math.round((color.confidence || 0) * 100)}% confidence`
+).join('\n')}
+
+TECHNICAL SPECIFICATIONS:
+- Platform: ${platform}
+- Framework: ${framework}
+- Styling: ${styling}
+- Architecture: ${architecture}
+- Custom Logic: ${customLogic || 'None'}
+- Routing: ${routing || 'None'}
+
+QUALITY INSIGHTS:
+- Element Detection Accuracy: ${Math.round((insights.accuracy?.elementDetection || 0) * 100)}%
+- Layout Analysis Accuracy: ${Math.round((insights.accuracy?.layoutAnalysis || 0) * 100)}%
+- CV-Enhanced Elements: ${insights.improvements?.cvEnhanced || 0}
+- Cross-Validated Elements: ${insights.improvements?.crossValidated || 0}
+
+CODE GENERATION REQUIREMENTS:
+1. Create components that EXACTLY match the detected elements and their positions
+2. Use the specified layout structure (${layoutStructure})
+3. Apply the detected color palette with semantic usage
+4. Implement responsive design based on analysis
+5. Follow ${architecture} architecture pattern
+6. Use semantic HTML elements based on detected roles
+7. Ensure accessibility with proper ARIA labels
+8. Implement proper spacing and alignment as detected
+
+CSS REQUIREMENTS:
+- Import App.css: import './App.css';
+- Use semantic CSS class names matching detected elements
+- Apply detected colors with CSS custom properties
+- Implement responsive breakpoints
+- Follow accessibility best practices
+
+CODE STRUCTURE:
+- Functional component with proper imports
+- Clean, semantic HTML structure matching CV analysis
+- Proper component organization based on detected hierarchy
+- Error boundaries where appropriate
+- Loading states and user feedback
+
+Return ONLY the complete App.jsx component code with proper CSS import.
+Ensure the code matches the hybrid analysis results with pixel-perfect accuracy.`;
+
+  return prompt;
+}
+
+// Helper function to analyze image metadata (existing LLM analysis)
+async function analyzeImageMetadata(images, model) {
+  if (!images || images.length === 0) {
+    return {
+      analysis: 'No images provided for analysis',
+      confidence: 0
+    };
+  }
+  
+  try {
+    const prompt = `Analyze these UI mockup images and provide detailed insights about:
+1. UI Components (buttons, inputs, navigation, etc.)
+2. Layout Structure (grid, flexbox, columns, etc.)
+3. Color Scheme and Typography
+4. Visual Hierarchy and Spacing
+5. Interactive Elements
+6. Responsive Design Considerations
+
+Provide a comprehensive analysis for code generation.`;
+    
+    const imageParts = images.map(img => ({
+      inlineData: {
+        data: img.data,
+        mimeType: img.mimeType || 'image/png'
+      }
+    }));
+    
+    const result = await model.generateContent([prompt, ...imageParts]);
+    return {
+      analysis: result.response.text(),
+      confidence: 0.8 // Default LLM confidence
+    };
+  } catch (error) {
+    console.error('LLM analysis error:', error);
+    return {
+      analysis: 'Error in LLM analysis',
+      confidence: 0
+    };
+  }
 }
 
 // Update the handleCodeGeneration function
