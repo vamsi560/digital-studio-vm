@@ -517,40 +517,40 @@ const AndroidLabFlow = ({ onNavigate }) => {
                             </button>
                         </div>
 
-                        <div className="mt-6">
-                                <label className={`flex items-center justify-center w-full p-6 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-green-400/50 ${
-                                    isDragging 
-                                        ? 'border-green-400 bg-green-400/10' 
-                                        : 'border-gray-600 bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500'
-                                }`}
-                                onDragOver={handleDragOver}
-                                onDragLeave={handleDragLeave}
-                                onDrop={handleDrop}
-                                >
-                                    <div className="text-center">
-                                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 transition-all duration-300 ${
-                                            isDragging 
-                                                ? 'bg-green-500 scale-110' 
-                                                : 'bg-gradient-to-br from-green-500 to-blue-500'
-                                        }`}>
-                                            <svg className={`w-6 h-6 text-white transition-all duration-300 ${isDragging ? 'animate-bounce' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                            </svg>
-                                        </div>
-                                        <span className="text-gray-200 font-medium text-sm block mb-1">
-                                            {isDragging ? 'Drop files here' : 'Upload your screens'}
-                                        </span>
-                                        <span className="text-gray-400 text-xs">Drag & drop or click to browse</span>
+                        <div className="mt-6 flex justify-center">
+                            <label className={`flex flex-col items-center justify-center w-48 p-6 border-2 border-dashed rounded-lg transition-all duration-300 cursor-pointer transform hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-green-400/50 ${
+                                isDragging 
+                                    ? 'border-green-400 bg-green-400/10' 
+                                    : 'border-gray-600 bg-gradient-to-br from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500'
+                            }`}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                            onDrop={handleDrop}
+                            >
+                                <div className="text-center">
+                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-3 transition-all duration-300 ${
+                                        isDragging 
+                                            ? 'bg-green-500 scale-110' 
+                                            : 'bg-gradient-to-br from-green-500 to-blue-500'
+                                    }`}>
+                                        <svg className={`w-6 h-6 text-white transition-all duration-300 ${isDragging ? 'animate-bounce' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        </svg>
                                     </div>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={(e) => handleFileUpload(e.target.files)}
-                                        className="hidden"
-                                    />
-                                </label>
-                            </div>
+                                    <span className="text-gray-200 font-medium text-sm block mb-1">
+                                        {isDragging ? 'Drop files here' : 'Upload your screens'}
+                                    </span>
+                                    <span className="text-gray-400 text-xs">Drag & drop or click to browse</span>
+                                </div>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={(e) => handleFileUpload(e.target.files)}
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
                         </div>
                     </div>
 

@@ -2,8 +2,8 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import multer from 'multer';
 import cors from 'cors';
 import JSZip from 'jszip';
-import SpecializedCVTools from './utils/specialized-cv-tools.js';
-import HybridAnalysisMerger from './utils/hybrid-analysis-merger.js';
+import SpecializedCVTools from './specialized-cv-tools.js';
+// import HybridAnalysisMerger from './utils/hybrid-analysis-merger.js';
 
 // CORS configuration
 const corsMiddleware = cors({
