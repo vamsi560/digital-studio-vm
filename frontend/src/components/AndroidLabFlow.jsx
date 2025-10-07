@@ -624,11 +624,12 @@ const AndroidLabFlow = ({ onNavigate }) => {
                                    {screenOrder.map((screen, index) => (
                                        <div 
                                            key={index}
-                                           className={`aspect-square border-2 border-dashed rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                           className={`flex items-center justify-center transition-all duration-300 ${
                                                screen 
-                                                   ? 'border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
-                                                   : 'border-gray-600/50 bg-gradient-to-br from-gray-800 to-gray-700'
+                                                   ? 'aspect-square border-2 border-dashed rounded-xl border-gray-500 bg-gradient-to-br from-gray-700 to-gray-600 shadow-lg' 
+                                                   : ''
                                            }`}
+                                           style={!screen ? { minHeight: '120px' } : {}}
                                            onDragOver={(e) => e.preventDefault()}
                                            onDrop={(e) => handleScreenDrop(e, index)}
                                        >
@@ -648,8 +649,8 @@ const AndroidLabFlow = ({ onNavigate }) => {
                                                    </div>
                                                </div>
                                            ) : (
-                                               <div className="text-center">
-                                                   <span className="text-4xl text-gray-500 font-bold">{index + 1}</span>
+                                               <div className="flex flex-col items-center justify-center border-2 border-dashed border-green-400 rounded-lg bg-gradient-to-br from-green-100 to-blue-100 w-24 h-24 mx-auto">
+                                                   <span className="text-2xl text-gray-500 font-bold">{index + 1}</span>
                                                    <p className="text-xs text-gray-400 mt-1">Drop screen here</p>
                                                </div>
                                            )}
